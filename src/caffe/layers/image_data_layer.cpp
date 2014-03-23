@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <leveldb/db.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include <string>
 #include <vector>
@@ -11,6 +12,7 @@
 #include <utility>
 
 #include "caffe/layer.hpp"
+#include "caffe/util/format.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/rng.hpp"
@@ -137,6 +139,62 @@ void* ImageDataLayerPrefetch(void* layer_pointer) {
         layer->ShuffleImages();
       }
     }
+  }  // if (crop_size > 0) {
+
+  top_label[item_id] = datum.label();
+}
+
+template <typename Dtype>
+void* ImageDataLayerPrefetch(void* layer_pointer) {
+  CHECK(layer_pointer);
+  ImageDataLayer<Dtype>* layer =
+      reinterpret_cast<ImageDataLayer<Dtype>*>(layer_pointer);
+  CHECK(layer);
+  Datum datum;
+  CHECK(layer->prefetch_data_);
+  Dtype* top_data = layer->prefetch_data_->mutable_cpu_data();
+  Dtype* top_label = layer->prefetch_label_->mutable_cpu_data();
+  ImageDataParameter image_data_param = layer->layer_param_.image_data_param();
+  const Dtype scale = image_data_param.scale();
+  const int batch_size = image_data_param.batch_size();
+  const int crop_size = image_data_param.crop_size();
+  const bool mirror = image_data_param.mirror();
+  const int new_height = image_data_param.new_height();
+  const int new_width = image_data_param.new_width();
+
+  if (mirror && crop_size == 0) {
+    LOG(FATAL) << "Current implementation requires mirror and crop_size to be "
+        << "set at the same time.";
+  }
+  // datum scales
+  const int channels = layer->datum_channels_;
+  const int height = layer->datum_height_;
+  const int width = layer->datum_width_;
+  const int size = layer->datum_size_;
+  const int lines_size = layer->lines_.size();
+  const Dtype* mean = layer->data_mean_.cpu_data();
+  for (int item_id = 0; item_id < batch_size; ++item_id) {
+    // get a blob
+    CHECK_GT(lines_size, layer->lines_id_);
+    if (!ReadImageToDatum(layer->lines_[layer->lines_id_].first,
+          layer->lines_[layer->lines_id_].second,
+          new_height, new_width, &datum)) {
+      continue;
+    }
+    ProcessImageDatum(channels, height, width, size, crop_size, mirror, mean,
+                      scale, datum, item_id, top_data, top_label);
+
+    top_label[item_id] = datum.label();
+    // go to the next iter
+    layer->lines_id_++;
+    if (layer->lines_id_ >= lines_size) {
+      // We have reached the end. Restart from the first.
+      DLOG(INFO) << "Restarting data prefetching from start.";
+      layer->lines_id_ = 0;
+      if (layer->layer_param_.image_data_param().shuffle()) {
+        std::random_shuffle(layer->lines_.begin(), layer->lines_.end());
+      }
+    }
   }
 
   return reinterpret_cast<void*>(NULL);
@@ -222,6 +280,7 @@ void ImageDataLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
   // check if we want to have mean
   if (this->layer_param_.image_data_param().has_mean_file()) {
     BlobProto blob_proto;
+    string mean_file = image_data_param.mean_file();
     LOG(INFO) << "Loading mean file from" << mean_file;
     ReadProtoFromBinaryFile(mean_file.c_str(), &blob_proto);
     data_mean_.FromProto(blob_proto);
