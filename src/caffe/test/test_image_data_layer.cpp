@@ -1,6 +1,7 @@
 // Copyright 2014 BVLC and contributors.
 
 #include <cuda_runtime.h>
+#include <opencv2/opencv.hpp>
 
 #include <iostream>  // NOLINT(readability/streams)
 #include <fstream>  // NOLINT(readability/streams)
@@ -39,9 +40,11 @@ class ImageDataLayerTest : public ::testing::Test {
     std::ofstream outfile(filename_->c_str(), std::ofstream::out);
     LOG(INFO) << "Using temporary file " << *filename_;
     for (int i = 0; i < 5; ++i) {
-      outfile << Examples_SOURCE_DIR "images/cat.jpg " << i;
+      outfile << "examples/images/cat.jpg " << i;
+      labels_.push_back(i);
     }
     outfile.close();
+    image_ = cv::imread("examples/images/cat.jpg", CV_LOAD_IMAGE_COLOR);
   }
 
   virtual ~ImageDataLayerTest() {
@@ -55,6 +58,8 @@ class ImageDataLayerTest : public ::testing::Test {
   Blob<Dtype>* const blob_top_label_;
   vector<Blob<Dtype>*> blob_bottom_vec_;
   vector<Blob<Dtype>*> blob_top_vec_;
+  cv::Mat image_;
+  vector<int> labels_;
 };
 
 typedef ::testing::Types<float, double> Dtypes;
@@ -76,11 +81,21 @@ TYPED_TEST(ImageDataLayerTest, TestRead) {
   EXPECT_EQ(this->blob_top_label_->channels(), 1);
   EXPECT_EQ(this->blob_top_label_->height(), 1);
   EXPECT_EQ(this->blob_top_label_->width(), 1);
-  // Go through the data twice
-  for (int iter = 0; iter < 2; ++iter) {
+  cv::Mat image = this->image_;
+  // Go through the data 5 times
+  for (int iter = 0; iter < 5; ++iter) {
     layer.Forward(this->blob_bottom_vec_, &this->blob_top_vec_);
-    for (int i = 0; i < 5; ++i) {
+    const TypeParam* data = this->blob_top_data_->cpu_data();
+    for (int i = 0, index = 0; i < 5; ++i) {
       EXPECT_EQ(i, this->blob_top_label_->cpu_data()[i]);
+      for (int c = 0; c < 3; ++c) {
+        for (int h = 0; h < image.rows; ++h) {
+          for (int w = 0; w < image.cols; ++w) {
+            EXPECT_EQ(static_cast<uint8_t>(image.at<cv::Vec3b>(h, w)[c]),
+                      static_cast<uint8_t>(data[index++]));
+          }
+        }
+      }
     }
   }
 }
@@ -128,6 +143,7 @@ TYPED_TEST(ImageDataLayerTest, TestShuffle) {
   EXPECT_EQ(this->blob_top_label_->channels(), 1);
   EXPECT_EQ(this->blob_top_label_->height(), 1);
   EXPECT_EQ(this->blob_top_label_->width(), 1);
+  cv::Mat image = this->image_;
   // Go through the data twice
   for (int iter = 0; iter < 2; ++iter) {
     layer.Forward(this->blob_bottom_vec_, &this->blob_top_vec_);
@@ -142,6 +158,130 @@ TYPED_TEST(ImageDataLayerTest, TestShuffle) {
     }
     EXPECT_EQ(5, values_to_indices.size());
     EXPECT_GT(5, num_in_order);
+    for (int i = 0, index = 0; i < 5; ++i) {
+      EXPECT_GE(this->blob_top_label_->cpu_data()[i], 0);
+      EXPECT_LE(this->blob_top_label_->cpu_data()[i], 5);
+      for (int c = 0; c < 3; ++c) {
+        for (int h = 0; h < image.rows; ++h) {
+          for (int w = 0; w < image.cols; ++w) {
+            EXPECT_EQ(static_cast<uint8_t>(image.at<cv::Vec3b>(h, w)[c]),
+                      data[index++]);
+          }
+        }
+      }
+    }
+  }
+}
+
+TYPED_TEST(ImagesLayerTest, TestAddImagesAndLabels) {
+  LayerParameter param;
+  param.set_batchsize(5);
+  param.set_shuffle_images(false);
+  ImagesLayer<TypeParam> layer(param);
+  layer.SetUp(this->blob_bottom_vec_, &this->blob_top_vec_);
+  EXPECT_EQ(this->blob_top_data_->num(), 0);
+  EXPECT_EQ(this->blob_top_data_->channels(), 0);
+  EXPECT_EQ(this->blob_top_data_->height(), 0);
+  EXPECT_EQ(this->blob_top_data_->width(), 0);
+  EXPECT_EQ(this->blob_top_label_->num(), 5);
+  EXPECT_EQ(this->blob_top_label_->channels(), 1);
+  EXPECT_EQ(this->blob_top_label_->height(), 1);
+  EXPECT_EQ(this->blob_top_label_->width(), 1);
+  cv::Mat image = this->image_;
+  vector<cv::Mat> images(5, image);
+  layer.AddImagesAndLabels(images, this->labels_);
+  EXPECT_EQ(this->blob_top_data_->num(), 5);
+  EXPECT_EQ(this->blob_top_data_->channels(), 3);
+  EXPECT_EQ(this->blob_top_data_->height(), this->image_.rows);
+  EXPECT_EQ(this->blob_top_data_->width(), this->image_.cols);
+  // Go through the data 5 times
+  for (int iter = 0; iter < 5; ++iter) {
+    layer.Forward(this->blob_bottom_vec_, &this->blob_top_vec_);
+    const TypeParam* data = this->blob_top_data_->cpu_data();
+    for (int i = 0, index = 0; i < 5; ++i) {
+      EXPECT_EQ(i, this->blob_top_label_->cpu_data()[i]);
+      for (int c = 0; c < 3; ++c) {
+        for (int h = 0; h < image.rows; ++h) {
+          for (int w = 0; w < image.cols; ++w) {
+            EXPECT_EQ(static_cast<uint8_t>(image.at<cv::Vec3b>(h, w)[c]),
+                      data[index++]);
+          }
+        }
+      }
+    }
+  }
+}
+
+TYPED_TEST(ImagesLayerTest, TestAddImagesAndLabelsResize) {
+  LayerParameter param;
+  param.set_batchsize(5);
+  param.set_new_height(256);
+  param.set_new_width(256);
+  param.set_shuffle_images(false);
+  ImagesLayer<TypeParam> layer(param);
+  layer.SetUp(this->blob_bottom_vec_, &this->blob_top_vec_);
+  EXPECT_EQ(this->blob_top_data_->num(), 0);
+  EXPECT_EQ(this->blob_top_data_->channels(), 0);
+  EXPECT_EQ(this->blob_top_data_->height(), 0);
+  EXPECT_EQ(this->blob_top_data_->width(), 0);
+  EXPECT_EQ(this->blob_top_label_->num(), 5);
+  EXPECT_EQ(this->blob_top_label_->channels(), 1);
+  EXPECT_EQ(this->blob_top_label_->height(), 1);
+  EXPECT_EQ(this->blob_top_label_->width(), 1);
+  cv::Mat image = this->image_;
+  vector<cv::Mat> images(5, image);
+  layer.AddImagesAndLabels(images, this->labels_);
+  EXPECT_EQ(this->blob_top_data_->num(), 5);
+  EXPECT_EQ(this->blob_top_data_->channels(), 3);
+  EXPECT_EQ(this->blob_top_data_->height(), param.new_height());
+  EXPECT_EQ(this->blob_top_data_->width(), param.new_width());
+  // Go through the data 50 times
+  for (int iter = 0; iter < 5; ++iter) {
+    layer.Forward(this->blob_bottom_vec_, &this->blob_top_vec_);
+    const TypeParam* data = this->blob_top_data_->cpu_data();
+    for (int i = 0, index = 0; i < 5; ++i) {
+      EXPECT_EQ(i, this->blob_top_label_->cpu_data()[i]);
+    }
+  }
+}
+
+TYPED_TEST(ImagesLayerTest, TestAddImagesAndLabelsShuffle) {
+  LayerParameter param;
+  param.set_batchsize(5);
+  param.set_shuffle_images(true);
+  ImagesLayer<TypeParam> layer(param);
+  layer.SetUp(this->blob_bottom_vec_, &this->blob_top_vec_);
+  EXPECT_EQ(this->blob_top_data_->num(), 0);
+  EXPECT_EQ(this->blob_top_data_->channels(), 0);
+  EXPECT_EQ(this->blob_top_data_->height(), 0);
+  EXPECT_EQ(this->blob_top_data_->width(), 0);
+  EXPECT_EQ(this->blob_top_label_->num(), 5);
+  EXPECT_EQ(this->blob_top_label_->channels(), 1);
+  EXPECT_EQ(this->blob_top_label_->height(), 1);
+  EXPECT_EQ(this->blob_top_label_->width(), 1);
+  cv::Mat image = this->image_;
+  vector<cv::Mat> images(5, image);
+  layer.AddImagesAndLabels(images, this->labels_);
+  EXPECT_EQ(this->blob_top_data_->num(), 5);
+  EXPECT_EQ(this->blob_top_data_->channels(), 3);
+  EXPECT_EQ(this->blob_top_data_->height(), this->image_.rows);
+  EXPECT_EQ(this->blob_top_data_->width(), this->image_.cols);
+  // Go through the data 5 times
+  for (int iter = 0; iter < 5; ++iter) {
+    layer.Forward(this->blob_bottom_vec_, &this->blob_top_vec_);
+    const TypeParam* data = this->blob_top_data_->cpu_data();
+    for (int i = 0, index = 0; i < 5; ++i) {
+      EXPECT_GE(this->blob_top_label_->cpu_data()[i], 0);
+      EXPECT_LE(this->blob_top_label_->cpu_data()[i], 5);
+      for (int c = 0; c < 3; ++c) {
+        for (int h = 0; h < image.rows; ++h) {
+          for (int w = 0; w < image.cols; ++w) {
+            EXPECT_EQ(static_cast<uint8_t>(image.at<cv::Vec3b>(h, w)[c]),
+                      data[index++]);
+          }
+        }
+      }
+    }
   }
 }
 
