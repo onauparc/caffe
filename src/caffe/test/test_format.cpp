@@ -28,7 +28,7 @@ typedef ::testing::Types<float, double> Dtypes;
 TYPED_TEST_CASE(FormatTest, Dtypes);
 
 TYPED_TEST(FormatTest, TestOpenCVImageToDatum) {
-  cv::Mat cv_img = cv::imread(this->image_file_path_, CV_LOAD_IMAGE_COLOR);
+  cv::Mat cv_img = cv::imread(this->image_file_path_);
   Datum* datum;
   int label = 1001;
   string data;

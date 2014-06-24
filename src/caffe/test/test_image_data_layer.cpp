@@ -44,7 +44,7 @@ class ImageDataLayerTest : public ::testing::Test {
       labels_.push_back(i);
     }
     outfile.close();
-    image_ = cv::imread("examples/images/cat.jpg", CV_LOAD_IMAGE_COLOR);
+    image_ = cv::imread("examples/images/cat.jpg");
   }
 
   virtual ~ImageDataLayerTest() {
