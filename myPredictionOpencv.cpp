@@ -83,12 +83,13 @@ int main(int argc, char** argv) {
   vector<cv::Mat> images(batch_size, image);
   vector<int> labels(batch_size, 0);
 
-  t.start();
   const shared_ptr<ImageDataLayer<float> > image_data_layer =
       boost::static_pointer_cast<ImageDataLayer<float> >(
           caffe_test_net.layer_by_name("data"));
   image_data_layer->AddImagesAndLabels(images, labels);
   vector<Blob<float>* > dummy_bottom_vec;
+  std::cout << "Inizio forward " << std::endl;
+  t.start();
   const vector<Blob<float>*>& result = caffe_test_net.Forward(dummy_bottom_vec, &loss);
 
   t.stop();
