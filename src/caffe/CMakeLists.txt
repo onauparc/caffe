@@ -88,7 +88,7 @@ target_link_libraries(caffe caffe_cu proto lmdb
 )
 
 #set output directory
-set_target_properties(caffe PROPERTIES 
+set_target_properties(caffe caffe_cu PROPERTIES 
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )   
