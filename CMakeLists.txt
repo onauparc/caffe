@@ -3,6 +3,8 @@ project( Caffe )
 
 ###    Build Options     ##########################################################################
 
+#set(CMAKE_CXX_COMPILER  /usr/bin/g++-4.6 )
+
 option(BUILD_PYTHON "Build Python wrapper" OFF)
 option(BUILD_MATLAB "Build Matlab wrapper" OFF)
 option(BUILD_EXAMPLES "Build examples" ON)

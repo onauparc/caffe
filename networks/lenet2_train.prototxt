@@ -1,11 +1,11 @@
-name: "LeNet"
+name: "LeNet2"
 layers {
-  name: "mnist"
-  type: DATA
+  name: "data"
+  type: IMAGE_DATA
   top: "data"
   top: "label"
-  data_param {
-    source: "/home/ladydisaster/libs/caffe/examples/mnist/mnist-train-leveldb"
+  image_data_param {
+    source: "/home/nn/caffe/lenet2/data/file_list.txt"
     scale: 0.00390625
     batch_size: 64
   }

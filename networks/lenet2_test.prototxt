@@ -1,13 +1,13 @@
-name: "LeNet"
+name: "LeNet-test"
 layers {
   name: "mnist"
   type: DATA
   top: "data"
   top: "label"
   data_param {
-    source: "/home/ladydisaster/libs/caffe/examples/mnist/mnist-train-leveldb"
+    source: "/home/ladydisaster/libs/caffe/examples/mnist/mnist-test-leveldb"
     scale: 0.00390625
-    batch_size: 64
+    batch_size: 100
   }
 }
 layers {
@@ -15,8 +15,6 @@ layers {
   type: CONVOLUTION
   bottom: "data"
   top: "conv1"
-  blobs_lr: 1
-  blobs_lr: 2
   convolution_param {
     num_output: 20
     kernel_size: 5
@@ -45,8 +43,6 @@ layers {
   type: CONVOLUTION
   bottom: "pool1"
   top: "conv2"
-  blobs_lr: 1
-  blobs_lr: 2
   convolution_param {
     num_output: 50
     kernel_size: 5
@@ -75,8 +71,6 @@ layers {
   type: INNER_PRODUCT
   bottom: "pool2"
   top: "ip1"
-  blobs_lr: 1
-  blobs_lr: 2
   inner_product_param {
     num_output: 500
     weight_filler {
@@ -98,8 +92,6 @@ layers {
   type: INNER_PRODUCT
   bottom: "ip1"
   top: "ip2"
-  blobs_lr: 1
-  blobs_lr: 2
   inner_product_param {
     num_output: 10
     weight_filler {
@@ -111,8 +103,15 @@ layers {
   }
 }
 layers {
-  name: "loss"
-  type: SOFTMAX_LOSS
+  name: "prob"
+  type: SOFTMAX
   bottom: "ip2"
+  top: "prob"
+}
+layers {
+  name: "accuracy"
+  type: ACCURACY
+  bottom: "prob"
   bottom: "label"
+  top: "accuracy"
 }
