@@ -5,12 +5,11 @@ layers {
   top: "data"
   top: "label"
   data_param {
-    source: "/home/nn/caffe/examples/mnist/mnist-train-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
+    source: "/home/nn/caffe/examples/mnist/mnist-test-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
+#    source: "/home/ladydisaster/libs/caffe/examples/mnist/mnist-test-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
+    #channels: 1 #SI PUÒ METTERE? NO!
     scale: 0.00390625
     batch_size: 64
-    channels: 1 #SI PUÒ METTERE?
-    new_height: 28 #45
-    new_width: 28 #32
   }
 }
 layers {
