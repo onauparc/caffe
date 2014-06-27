@@ -1,13 +1,13 @@
 # The training protocol buffer definition
-train_net: "timeline_train.prototxt"
+train_net: "/home/nn/caffe/networks/timeline/timeline_train.prototxt"
 # The testing protocol buffer definition
-test_net: "timeline_test.prototxt"
+test_net: "/home/nn/caffe/networks/timeline/timeline_test.prototxt"
 # test_iter specifies how many forward passes the test should carry out.
 # In the case of MNIST, we have test batch size 100 and 100 test iterations,
 # covering the full 10,000 testing images.
-test_iter: 100 #C'È IL TERMINATION CRITERIA?
+test_iter: 100 
 # Carry out testing every 500 training iterations.
-test_interval: 500 #QUANTO METTIAMO?
+test_interval: 500 
 # The base learning rate, momentum and the weight decay of the network.
 base_lr: 0.01
 momentum: 0.5
@@ -19,7 +19,7 @@ power: 0.75       #COSA È?
 # Display every 100 iterations
 display: 100      
 # The maximum number of iterations
-max_iter: 10000
+max_iter: 50000
 # snapshot intermediate results
 snapshot: 5000
 snapshot_prefix: "timeline"

@@ -5,7 +5,7 @@ layers {
   top: "data"
   top: "label"
   data_param {
-    source: /home/ladydisaster/libs/caffe/caffe/examples/mnist/mnist-train-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
+    source: "/home/nn/caffe/examples/mnist/mnist-train-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
     scale: 0.00390625
     batch_size: 64
     channels: 1 #SI PUÒ METTERE?
@@ -74,9 +74,14 @@ layers {
   top: "pool2"
 }
 layers {
-  name: "y"
-  type: SIGMOID
-  num_output: 46 #si potrà mettere?
+  name: "prob"
+  type: SOFTMAX
   bottom: "h3"
+  top: "prob"
+}
+layers {
+  name: "output"
+  type: ARGMAX
+  bottom: "prob"
   top: "output"
 }
