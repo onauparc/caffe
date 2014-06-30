@@ -1,0 +1,163 @@
+name: "LeNet"
+layers {
+  name: "data"
+  type: IMAGE_DATA
+  top: "data"
+  top: "label"
+  image_data_param {
+    source: "/home/nn/src/pylearn_data/mnist/gt_train.txt"
+    scale: 0.00390625
+    batch_size: 64
+  }
+}
+layers {
+  name: "data2"
+  type: IMAGE_DATA
+  top: "data2"
+  top: "label2"
+  image_data_param {
+    source: "/home/nn/src/pylearn_data/mnist/gt_train_min_5.txt"
+    scale: 0.00390625
+    batch_size: 64
+  }
+}
+layers {
+  name: "conv1"
+  type: CONVOLUTION
+  bottom: "data"
+  top: "conv1"
+  blobs_lr: 1
+  blobs_lr: 2
+  convolution_param {
+    num_output: 20
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "pool1"
+  type: POOLING
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layers {
+  name: "conv2"
+  type: CONVOLUTION
+  bottom: "pool1"
+  top: "conv2"
+  blobs_lr: 1
+  blobs_lr: 2
+  convolution_param {
+    num_output: 50
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "pool2"
+  type: POOLING
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layers {
+  name: "ip1"
+  type: INNER_PRODUCT
+  bottom: "pool2"
+  top: "ip1"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "relu1"
+  type: RELU
+  bottom: "ip1"
+  top: "ip1"
+}
+layers {
+  name: "ip2"
+  type: INNER_PRODUCT
+  bottom: "ip1"
+  top: "ip2"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "ip2_2"
+  type: INNER_PRODUCT
+  bottom: "ip1"
+  top: "ip2_2"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+
+layers {
+  name: "fake_relu1"
+  type: RELU
+  bottom: "data2"
+  top: "data2"
+}
+
+
+layers {
+  name: "loss"
+  type: SOFTMAX_LOSS
+  bottom: "ip2"
+  bottom: "label"
+}
+
+layers {
+  name: "loss2"
+  type: SOFTMAX_LOSS
+  bottom: "ip2_2"
+  bottom: "label2"
+}
