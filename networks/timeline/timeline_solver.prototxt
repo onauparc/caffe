@@ -26,4 +26,4 @@ max_iter: 50000
 snapshot: 5000
 snapshot_prefix: "timeline"
 # solver mode: CPU or GPU
-solver_mode: CPU
+solver_mode: GPU
