@@ -83,3 +83,10 @@ layers {
   bottom: "prob"
   top: "output"
 }
+layers {
+  name: "accuracy"
+  type: ACCURACY
+  bottom: "output"
+  bottom: "label"
+  top: "accuracy"
+}
