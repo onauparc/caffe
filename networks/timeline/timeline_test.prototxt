@@ -1,15 +1,14 @@
 name: "TimelineNet"
 layers {
-  name: "mnist"
-  type: DATA
+  name: "data"
+  type: IMAGE_DATA
   top: "data"
   top: "label"
-  data_param {
-    source: "/home/nn/caffe/examples/mnist/mnist-test-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
-#    source: "/home/ladydisaster/libs/caffe/examples/mnist/mnist-test-leveldb" #PER IL MOMENTO LO PROVIAMO COSÌ POI METTIAMO LE NOSTRE IMMAGINI
-    #channels: 1 #SI PUÒ METTERE? NO!
-    scale: 0.00390625
-    batch_size: 64
+  image_data_param {
+    source: "/home/nn/caffe/networks/timeline/data/pettorine_dataset/temp/file_listTEST.txt"
+    batch_size: 100
+    new_height: 32
+    new_width: 45
   }
 }
 layers {
