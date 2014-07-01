@@ -39,7 +39,7 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
   // Fill the LevelDB with data: if unique_pixels, each pixel is unique but
   // all images are the same; else each image is unique but all pixels within
   // an image are the same.
-  void FillLevelDB(const bool unique_pixels) {
+  void FillLevelDB(const bool unique_pixels, const bool multilabel=false) {
     backend_ = DataParameter_DB_LEVELDB;
     LOG(INFO) << "Using temporary leveldb " << *filename_;
     leveldb::DB* db;
@@ -51,7 +51,17 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
     CHECK(status.ok());
     for (int i = 0; i < 5; ++i) {
       Datum datum;
-      datum.set_label(i);
+      if (multilabel) {
+        for (int l = 0; l < 5; ++l) {
+          if (l == i) {
+            datum.add_label(1);
+          } else {
+            datum.add_label(-1);
+          }
+        }
+      } else {
+        datum.add_label(i);  
+      }
       datum.set_channels(2);
       datum.set_height(3);
       datum.set_width(4);
@@ -68,7 +78,7 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
   }
 
   // Fill the LMDB with data: unique_pixels has same meaning as in FillLevelDB.
-  void FillLMDB(const bool unique_pixels) {
+  void FillLMDB(const bool unique_pixels, const bool multilabel=false) {
     backend_ = DataParameter_DB_LMDB;
     LOG(INFO) << "Using temporary lmdb " << *filename_;
     CHECK_EQ(mkdir(filename_->c_str(), 0744), 0) << "mkdir " << filename_
@@ -88,7 +98,17 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
 
     for (int i = 0; i < 5; ++i) {
       Datum datum;
-      datum.set_label(i);
+      if (multilabel) {
+        for (int l = 0; l < 5; ++l) {
+          if (l == i) {
+            datum.add_label(1);
+          } else {
+            datum.add_label(-1);
+          }
+        }
+      } else {
+        datum.add_label(i);  
+      }
       datum.set_channels(2);
       datum.set_height(3);
       datum.set_width(4);
