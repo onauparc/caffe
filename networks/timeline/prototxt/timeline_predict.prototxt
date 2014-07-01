@@ -5,7 +5,7 @@ layers {
   top: "data"
   top: "label"
   image_data_param {
-    source: "/home/nn/caffe/networks/timeline/data/pettorine_dataset/temp/file_listPREDICT.txt"
+    source: "/home/claudia/caffe/data/pettorine_dataset/temp/file_listPREDICT.txt"
 #    source: "/home/ladydisaster/Dataset/timeline/temp/file_listPREDICT.txt"
     batch_size: 10
     new_height: 32
