@@ -79,9 +79,14 @@ int main(int argc, char** argv) {
 
   LOG(ERROR)<< "Output result size: "<< result.size();
   // Now result will contain the argmax results.
-  const float* argmaxs = result[1]->cpu_data();
+  const float* boh = result[0]->cpu_data();
+  const float* argmaxs1 = result[1]->cpu_data();
+  const float* labels1 = result[2]->cpu_data();
+  const float* argmaxs2 = result[3]->cpu_data();
+  const float* labels2 = result[4]->cpu_data();
   for (int i = 0; i < result[1]->num(); ++i) {
-    LOG(ERROR)<< " Image: "<< i << " class:" << argmaxs[i];
+    LOG(ERROR)<< " Image: "<< i << " class1: " << argmaxs1[i] << " gt1: " << labels1[i] << " - class2: " << argmaxs2[i] <<" gt2: " << labels2[i] << std::endl;
+    LOG(ERROR)<< " BOH: "<< boh[i]<< std::endl;
   }
   
   return 0;

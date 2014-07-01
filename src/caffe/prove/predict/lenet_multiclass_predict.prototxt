@@ -7,7 +7,7 @@ layers {
   image_data_param {
     source: "/home/nn/caffe/src/caffe/prove/predict/file_list.txt"
     scale: 0.00390625
-    batch_size: 64
+    batch_size: 10
   }
 }
 layers {
@@ -18,7 +18,7 @@ layers {
   image_data_param {
     source: "/home/nn/caffe/src/caffe/prove/predict/file_list_2.txt"
     scale: 0.00390625
-    batch_size: 64
+    batch_size: 10
   }
 }
 layers {
