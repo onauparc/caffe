@@ -13,20 +13,18 @@ layers {
   }
 }
 layers {
-  name: "h2"
+  name: "conv1"
   type: CONVOLUTION
   bottom: "data"
-  top: "h2"
-  blobs_lr: 1 
-  blobs_lr: 1 
+  top: "conv1"
+  blobs_lr: 1
+  blobs_lr: 2
   convolution_param {
-    num_output: 64
+    num_output: 20
     kernel_size: 5
-    stride: 2
-    weight_filler {  
-      type: "uniform"
-      min: -0.05
-      max: 0.05
+    stride: 1
+    weight_filler {
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -36,29 +34,27 @@ layers {
 layers {
   name: "pool1"
   type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h2"
+  bottom: "conv1"
   top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
 }
 layers {
-  name: "h3"
+  name: "conv2"
   type: CONVOLUTION
-  bottom: "h2"
-  top: "h3"
-  blobs_lr: 1 
-  blobs_lr: 1 
+  bottom: "pool1"
+  top: "conv2"
+  blobs_lr: 1
+  blobs_lr: 2
   convolution_param {
-    num_output: 64
+    num_output: 50
     kernel_size: 5
-    stride: 2
-    weight_filler { 
-      type: "uniform"
-      min: -0.05
-      max: 0.05
+    stride: 1
+    weight_filler {
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -68,17 +64,57 @@ layers {
 layers {
   name: "pool2"
   type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h3"
+  bottom: "conv2"
   top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layers {
+  name: "ip1"
+  type: INNER_PRODUCT
+  bottom: "pool2"
+  top: "ip1"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "relu1"
+  type: RELU
+  bottom: "ip1"
+  top: "ip1"
+}
+layers {
+  name: "ip2"
+  type: INNER_PRODUCT
+  bottom: "ip1"
+  top: "ip2"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
 }
 layers {
   name: "loss"
   type: SOFTMAX_LOSS
-  bottom: "h3"
+  bottom: "ip2"
   bottom: "label"
 }
