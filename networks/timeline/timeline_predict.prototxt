@@ -77,14 +77,45 @@ layers {
   top: "pool2"
 }
 layers {
-  name: "prob"
-  type: SOFTMAX
+  name: "pool2"
+  type: POOLING
+  pooling_param {
+    kernel_size: 4
+    stride: 2
+    pool: MAX
+  }
   bottom: "h3"
-  top: "prob"
+  top: "pool2"
+}
+layers {
+  name: "ip2"
+  type: INNER_PRODUCT
+  bottom: "pool2"
+  top: "ip2"
+  blobs_lr: 1
+  blobs_lr: 2
+  inner_product_param {
+    num_output: 10
+    weight_filler { 
+      type: "uniform"
+      min: -0.05
+      max: 0.05
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layers {
+  name: "loss"
+  type: SOFTMAX_LOSS
+  bottom: "ip2"
+  bottom: "label"
+  top: "loss"
 }
 layers {
   name: "output"
   type: ARGMAX
-  bottom: "prob"
+  bottom: "loss"
   top: "output"
 }
