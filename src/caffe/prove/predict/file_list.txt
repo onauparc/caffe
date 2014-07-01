@@ -1,0 +1,10 @@
+/home/nn/src/pylearn_data/mnist/test/1.tiff 7
+/home/nn/src/pylearn_data/mnist/test/2.tiff 2
+/home/nn/src/pylearn_data/mnist/test/3.tiff 1
+/home/nn/src/pylearn_data/mnist/test/4.tiff 0
+/home/nn/src/pylearn_data/mnist/test/5.tiff 4
+/home/nn/src/pylearn_data/mnist/test/6.tiff 1
+/home/nn/src/pylearn_data/mnist/test/7.tiff 4
+/home/nn/src/pylearn_data/mnist/test/8.tiff 9
+/home/nn/src/pylearn_data/mnist/test/9.tiff 5
+/home/nn/src/pylearn_data/mnist/test/10.tiff 9

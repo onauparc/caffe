@@ -15,26 +15,7 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
 		-gencode arch=compute_35,code=sm_35
 )
 
-#    BLAS
-if(BLAS STREQUAL "atlas")
-
-    find_package(Atlas REQUIRED)
-    include_directories(${ATLAS_INCLUDE_DIR})
-    set(BLAS_LIBRARIES ${ATLAS_LIBRARIES})
-    
-elseif(BLAS STREQUAL "open")
-
-    find_package(OpenBLAS REQUIRED)
-    include_directories(${OpenBLAS_INCLUDE_DIR})
-    set(BLAS_LIBRARIES ${OpenBLAS_LIB})
-    
-elseif(BLAS STREQUAL "mkl")
-
-    find_package(MKL REQUIRED)
-    include_directories(${MKL_INCLUDE_DIR})
-    set(BLAS_LIBRARIES ${MKL_LIBRARIES})
-    
-endif()
+find_package(BLAS REQUIRED)
 
 #    HDF5
 find_package(HDF5 COMPONENTS HL REQUIRED)
@@ -94,6 +75,8 @@ set_target_properties(caffe caffe_cu PROPERTIES
 )   
 
 add_subdirectory(test)
+
+message(STATUS "blas: " + ${BLAS_LIBRARIES})
 
 ###    Install    #################################################################################
 
