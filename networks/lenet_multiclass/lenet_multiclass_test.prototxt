@@ -149,31 +149,32 @@ layers {
 
 
 layers {
+  name: "loss"
+  type: SOFTMAX
+  bottom: "ip2"
+  top: "loss"
+}
+
+layers {
   name: "accuracy1"
   type: ACCURACY
-  bottom: "ip2"
+  bottom: "loss"
   bottom: "label"
   top: "accuracy1"
 }
+
 layers {
-  name: "loss"
-  type: SOFTMAX_LOSS
-  bottom: "ip2"
-  bottom: "label"
-  top: "loss"
+  name: "loss2"
+  type: SOFTMAX
+  bottom: "ip2_2"
+  top: "loss2"
 }
 
 layers {
   name: "accuracy2"
   type: ACCURACY
-  bottom: "ip2_2"
+  bottom: "loss2"
   bottom: "label2"
   top: "accuracy2"
 }
-layers {
-  name: "loss"
-  type: SOFTMAX_LOSS
-  bottom: "ip2_2"
-  bottom: "label2"
-  top: "loss"
-}
+

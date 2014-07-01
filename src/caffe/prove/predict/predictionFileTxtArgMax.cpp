@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
   float loss;
   const vector<Blob<float>*>& result = caffe_test_net.ForwardPrefilled(&loss);
 
+  std::cout<<"RESULT SIZE: "<<result.size()<<std::endl;
+
   LOG(ERROR)<< "Output result size: "<< result.size();
   // Now result will contain the argmax results.
   const float* argmaxs = result[1]->cpu_data();
