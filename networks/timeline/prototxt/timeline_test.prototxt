@@ -73,24 +73,9 @@ layers {
   top: "pool2"
 }
 layers {
-  name: "ip2"
-  type: INNER_PRODUCT
-  bottom: "pool2"
-  top: "ip2"
-  inner_product_param {
-    num_output: 10
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-    }
-  }
-}
-layers {
   name: "prob"
   type: SOFTMAX
-  bottom: "ip2"
+  bottom: "h3"
   top: "prob"
 }
 layers {
