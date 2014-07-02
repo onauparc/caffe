@@ -20,10 +20,8 @@ namespace caffe {
 
 extern cudaDeviceProp CAFFE_TEST_CUDA_PROP;
 
-template <typename TypeParam>
-class DataLayerTest : public MultiDeviceTest<TypeParam> {
-  typedef typename TypeParam::Dtype Dtype;
-
+template <typename Dtype>
+class DataLayerTest : public ::testing::Test {
  protected:
   DataLayerTest()
       : backend_(DataParameter_DB_LEVELDB),
@@ -158,6 +156,45 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
       layer.Forward(blob_bottom_vec_, &blob_top_vec_);
       for (int i = 0; i < 5; ++i) {
         EXPECT_EQ(i, blob_top_label_->cpu_data()[i]);
+      }
+      for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 24; ++j) {
+          EXPECT_EQ(scale * i, blob_top_data_->cpu_data()[i * 24 + j])
+              << "debug: iter " << iter << " i " << i << " j " << j;
+        }
+      }
+    }
+  }
+
+  void TestReadMultiLabel() {
+    const Dtype scale = 3;
+    LayerParameter param;
+    DataParameter* data_param = param.mutable_data_param();
+    data_param->set_batch_size(5);
+    data_param->set_scale(scale);
+    data_param->set_source(filename_->c_str());
+    data_param->set_backend(backend_);
+    DataLayer<Dtype> layer(param);
+    layer.SetUp(blob_bottom_vec_, &blob_top_vec_);
+    EXPECT_EQ(blob_top_data_->num(), 5);
+    EXPECT_EQ(blob_top_data_->channels(), 2);
+    EXPECT_EQ(blob_top_data_->height(), 3);
+    EXPECT_EQ(blob_top_data_->width(), 4);
+    EXPECT_EQ(blob_top_label_->num(), 5);
+    EXPECT_EQ(blob_top_label_->channels(), 5);
+    EXPECT_EQ(blob_top_label_->height(), 1);
+    EXPECT_EQ(blob_top_label_->width(), 1);
+
+    for (int iter = 0; iter < 100; ++iter) {
+      layer.Forward(blob_bottom_vec_, &blob_top_vec_);
+      for (int i = 0; i < 5; ++i) {
+        for (int l = 0; l < 5; ++l) {
+          if (i == l) {
+            EXPECT_EQ(1, blob_top_label_->cpu_data()[i * 5 + l]);
+          } else {
+            EXPECT_EQ(-1, blob_top_label_->cpu_data()[i * 5 + l ]);
+          }
+        }
       }
       for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 24; ++j) {
@@ -331,16 +368,50 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
   int seed_;
 };
 
-TYPED_TEST_CASE(DataLayerTest, TestDtypesAndDevices);
+typedef ::testing::Types<float, double> Dtypes;
+TYPED_TEST_CASE(DataLayerTest, Dtypes);
 
-TYPED_TEST(DataLayerTest, TestReadLevelDB) {
+TYPED_TEST(DataLayerTest, TestReadLevelDBCPU) {
+  Caffe::set_mode(Caffe::CPU);
   const bool unique_pixels = false;  // all pixels the same; images different
   this->FillLevelDB(unique_pixels);
   this->TestRead();
 }
 
-TYPED_TEST(DataLayerTest, TestReadCropTrainLevelDB) {
+TYPED_TEST(DataLayerTest, TestReadLevelDBGPU) {
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  this->FillLevelDB(unique_pixels);
+  this->TestRead();
+}
+
+TYPED_TEST(DataLayerTest, TestReadMultiLabelLevelDBCPU) {
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  const bool multilabel = true; // each image have multiple labels
+  this->FillLevelDB(unique_pixels, multilabel);
+  this->TestReadMultiLabel();
+}
+
+TYPED_TEST(DataLayerTest, TestReadMultiLabelLevelDBGPU) {
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  const bool multilabel = true; // each image have multiple labels
+  this->FillLevelDB(unique_pixels, multilabel);
+  this->TestReadMultiLabel();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTrainLevelDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLevelDB(unique_pixels);
+  this->TestReadCrop();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTrainLevelDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLevelDB(unique_pixels);
   this->TestReadCrop();
@@ -348,8 +419,19 @@ TYPED_TEST(DataLayerTest, TestReadCropTrainLevelDB) {
 
 // Test that the sequence of random crops is consistent when using
 // Caffe::set_random_seed.
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLevelDB) {
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLevelDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLevelDB(unique_pixels);
+  this->TestReadCropTrainSequenceSeeded();
+}
+
+// Test that the sequence of random crops is consistent when using
+// Caffe::set_random_seed.
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLevelDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLevelDB(unique_pixels);
   this->TestReadCropTrainSequenceSeeded();
@@ -357,28 +439,81 @@ TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLevelDB) {
 
 // Test that the sequence of random crops differs across iterations when
 // Caffe::set_random_seed isn't called (and seeds from srand are ignored).
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLevelDB) {
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLevelDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLevelDB(unique_pixels);
   this->TestReadCropTrainSequenceUnseeded();
 }
 
-TYPED_TEST(DataLayerTest, TestReadCropTestLevelDB) {
+// Test that the sequence of random crops differs across iterations when
+// Caffe::set_random_seed isn't called (and seeds from srand are ignored).
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLevelDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLevelDB(unique_pixels);
+  this->TestReadCropTrainSequenceUnseeded();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTestLevelDBCPU) {
   Caffe::set_phase(Caffe::TEST);
+  Caffe::set_mode(Caffe::CPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLevelDB(unique_pixels);
   this->TestReadCrop();
 }
 
-TYPED_TEST(DataLayerTest, TestReadLMDB) {
+TYPED_TEST(DataLayerTest, TestReadCropTestLevelDBGPU) {
+  Caffe::set_phase(Caffe::TEST);
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLevelDB(unique_pixels);
+  this->TestReadCrop();
+}
+
+TYPED_TEST(DataLayerTest, TestReadLMDBCPU) {
+  Caffe::set_mode(Caffe::CPU);
   const bool unique_pixels = false;  // all pixels the same; images different
   this->FillLMDB(unique_pixels);
   this->TestRead();
 }
 
-TYPED_TEST(DataLayerTest, TestReadCropTrainLMDB) {
+TYPED_TEST(DataLayerTest, TestReadLMDBGPU) {
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  this->FillLMDB(unique_pixels);
+  this->TestRead();
+}
+
+TYPED_TEST(DataLayerTest, TestReadMultiLabelLMDBCPU) {
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  const bool multilabel = true; // each image have multiple labels
+  this->FillLMDB(unique_pixels, multilabel);
+  this->TestReadMultiLabel();
+}
+
+TYPED_TEST(DataLayerTest, TestReadMultiLabelLMDBGPU) {
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = false;  // all pixels the same; images different
+  const bool multilabel = true; // each image have multiple labels
+  this->FillLMDB(unique_pixels, multilabel);
+  this->TestReadMultiLabel();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTrainLMDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLMDB(unique_pixels);
+  this->TestReadCrop();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTrainLMDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLMDB(unique_pixels);
   this->TestReadCrop();
@@ -386,8 +521,19 @@ TYPED_TEST(DataLayerTest, TestReadCropTrainLMDB) {
 
 // Test that the sequence of random crops is consistent when using
 // Caffe::set_random_seed.
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLMDB) {
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLMDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLMDB(unique_pixels);
+  this->TestReadCropTrainSequenceSeeded();
+}
+
+// Test that the sequence of random crops is consistent when using
+// Caffe::set_random_seed.
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLMDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLMDB(unique_pixels);
   this->TestReadCropTrainSequenceSeeded();
@@ -395,15 +541,35 @@ TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLMDB) {
 
 // Test that the sequence of random crops differs across iterations when
 // Caffe::set_random_seed isn't called (and seeds from srand are ignored).
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLMDB) {
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLMDBCPU) {
   Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::CPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLMDB(unique_pixels);
   this->TestReadCropTrainSequenceUnseeded();
 }
 
-TYPED_TEST(DataLayerTest, TestReadCropTestLMDB) {
+// Test that the sequence of random crops differs across iterations when
+// Caffe::set_random_seed isn't called (and seeds from srand are ignored).
+TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLMDBGPU) {
+  Caffe::set_phase(Caffe::TRAIN);
+  Caffe::set_mode(Caffe::GPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLMDB(unique_pixels);
+  this->TestReadCropTrainSequenceUnseeded();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTestLMDBCPU) {
   Caffe::set_phase(Caffe::TEST);
+  Caffe::set_mode(Caffe::CPU);
+  const bool unique_pixels = true;  // all images the same; pixels different
+  this->FillLMDB(unique_pixels);
+  this->TestReadCrop();
+}
+
+TYPED_TEST(DataLayerTest, TestReadCropTestLMDBGPU) {
+  Caffe::set_phase(Caffe::TEST);
+  Caffe::set_mode(Caffe::GPU);
   const bool unique_pixels = true;  // all images the same; pixels different
   this->FillLMDB(unique_pixels);
   this->TestReadCrop();
