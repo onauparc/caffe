@@ -78,8 +78,9 @@ int main(int argc, char** argv) {
   LOG(ERROR)<< "Output result size: "<< result.size();
   // Now result will contain the argmax results.
   const float* argmaxs = result[1]->cpu_data();
+  const float* labels = result[0]->cpu_data();
   for (int i = 0; i < result[1]->num(); ++i) {
-    LOG(ERROR)<< " Image: "<< i << " class:" << argmaxs[i];
+    LOG(ERROR)<< " Image: "<< i << " predicted:" << argmaxs[i] << " label: " << labels[i] ;
   }
   
   return 0;

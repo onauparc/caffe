@@ -5,11 +5,8 @@ layers {
   top: "data"
   top: "label"
   image_data_param {
-    source: "/home/claudia/caffe/data/pettorine_dataset/temp/file_listTRAIN.txt"
-#    source: "/home/ladydisaster/Dataset/timeline/temp/file_listTRAIN.txt"
-    batch_size: 100
-    new_height: 32
-    new_width: 45
+    source: "/var/lib/data/timeline/pettorine_dataset/temp/file_listPREDICT.txt"
+    batch_size: 40
   }
 }
 layers {
@@ -82,4 +79,9 @@ layers {
   bottom: "h3"
   top: "prob"
 }
-
+layers {
+  name: "output"
+  type: ARGMAX
+  bottom: "prob"
+  top: "output"
+}

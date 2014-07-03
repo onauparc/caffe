@@ -13,16 +13,18 @@ layers {
   }
 }
 layers {
-  name: "conv1"
+  name: "h2"
   type: CONVOLUTION
   bottom: "data"
-  top: "conv1"
+  top: "h2"
   convolution_param {
-    num_output: 20
+    num_output: 64
     kernel_size: 5
-    stride: 1
-    weight_filler {
-      type: "xavier"
+    stride: 2
+    weight_filler { 
+      type: "uniform"
+      min: -0.05
+      max: 0.05
     }
     bias_filler {
       type: "constant"
@@ -32,25 +34,27 @@ layers {
 layers {
   name: "pool1"
   type: POOLING
-  bottom: "conv1"
-  top: "pool1"
   pooling_param {
-    pool: MAX
-    kernel_size: 2
+    kernel_size: 4
     stride: 2
+    pool: MAX
   }
+  bottom: "h2"
+  top: "pool1"
 }
 layers {
-  name: "conv2"
+  name: "h3"
   type: CONVOLUTION
-  bottom: "pool1"
-  top: "conv2"
+  bottom: "h2"
+  top: "h3"
   convolution_param {
-    num_output: 50
+    num_output: 64
     kernel_size: 5
-    stride: 1
-    weight_filler {
-      type: "xavier"
+    stride: 2
+    weight_filler { 
+      type: "uniform"
+      min: -0.05
+      max: 0.05
     }
     bias_filler {
       type: "constant"
@@ -60,54 +64,18 @@ layers {
 layers {
   name: "pool2"
   type: POOLING
-  bottom: "conv2"
-  top: "pool2"
   pooling_param {
-    pool: MAX
-    kernel_size: 2
+    kernel_size: 4
     stride: 2
+    pool: MAX
   }
-}
-layers {
-  name: "ip1"
-  type: INNER_PRODUCT
-  bottom: "pool2"
-  top: "ip1"
-  inner_product_param {
-    num_output: 500
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-    }
-  }
-}
-layers {
-  name: "relu1"
-  type: RELU
-  bottom: "ip1"
-  top: "ip1"
-}
-layers {
-  name: "ip2"
-  type: INNER_PRODUCT
-  bottom: "ip1"
-  top: "ip2"
-  inner_product_param {
-    num_output: 10
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-    }
-  }
+  bottom: "h3"
+  top: "pool2"
 }
 layers {
   name: "prob"
   type: SOFTMAX
-  bottom: "ip2"
+  bottom: "h3"
   top: "prob"
 }
 layers {

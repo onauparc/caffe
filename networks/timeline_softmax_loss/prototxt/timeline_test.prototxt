@@ -5,11 +5,8 @@ layers {
   top: "data"
   top: "label"
   image_data_param {
-    source: "/home/claudia/caffe/data/pettorine_dataset/temp/file_listTRAIN.txt"
-#    source: "/home/ladydisaster/Dataset/timeline/temp/file_listTRAIN.txt"
+    source: "/var/lib/data/timeline/pettorine_dataset/temp/file_listTEST.txt"
     batch_size: 100
-    new_height: 32
-    new_width: 45
   }
 }
 layers {
@@ -17,13 +14,11 @@ layers {
   type: CONVOLUTION
   bottom: "data"
   top: "h2"
-  blobs_lr: 1 
-  blobs_lr: 1 
   convolution_param {
     num_output: 64
     kernel_size: 5
     stride: 2
-    weight_filler {  
+    weight_filler { 
       type: "uniform"
       min: -0.05
       max: 0.05
@@ -47,10 +42,8 @@ layers {
 layers {
   name: "h3"
   type: CONVOLUTION
-  bottom: "h2"
+  bottom: "pool1"
   top: "h3"
-  blobs_lr: 1 
-  blobs_lr: 1 
   convolution_param {
     num_output: 64
     kernel_size: 5
@@ -77,9 +70,15 @@ layers {
   top: "pool2"
 }
 layers {
-  name: "prob"
+  name: "loss"
   type: SOFTMAX
-  bottom: "h3"
-  top: "prob"
+  bottom: "pool2"
+  top: "loss"
 }
-
+layers {
+  name: "accuracy"
+  type: ACCURACY
+  bottom: "loss"
+  bottom: "label"
+  top: "accuracy"
+}
