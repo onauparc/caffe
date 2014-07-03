@@ -29,20 +29,9 @@ layers {
   }
 }
 layers {
-  name: "pool1"
-  type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h2"
-  top: "pool1"
-}
-layers {
   name: "h3"
   type: CONVOLUTION
-  bottom: "pool1"
+  bottom: "h2"
   top: "h3"
   convolution_param {
     num_output: 64
@@ -59,26 +48,15 @@ layers {
   }
 }
 layers {
-  name: "pool2"
-  type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h3"
-  top: "pool2"
-}
-layers {
-  name: "loss"
-  type: SOFTMAX
-  bottom: "pool2"
-  top: "loss"
-}
-layers {
   name: "accuracy"
   type: ACCURACY
-  bottom: "loss"
+  bottom: "h3"
   bottom: "label"
   top: "accuracy"
+}
+layers {
+  name: "prob"
+  type: SOFTMAX_LOSS
+  bottom: "h2"
+  bottom: "label"
 }

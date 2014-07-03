@@ -14,64 +14,34 @@ layers {
   type: CONVOLUTION
   bottom: "data"
   top: "h2"
-  blobs_lr: 1 
-  blobs_lr: 1 
   convolution_param {
     num_output: 64
     kernel_size: 5
     stride: 2
-    weight_filler {  
-      type: "uniform"
-      min: -0.05
-      max: 0.05
+    weight_filler {
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
     }
   }
-}
-layers {
-  name: "pool1"
-  type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h2"
-  top: "pool1"
 }
 layers {
   name: "h3"
   type: CONVOLUTION
   bottom: "h2"
   top: "h3"
-  blobs_lr: 1 
-  blobs_lr: 1 
   convolution_param {
     num_output: 64
     kernel_size: 5
     stride: 2
-    weight_filler { 
-      type: "uniform"
-      min: -0.05
-      max: 0.05
+    weight_filler {
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
     }
   }
-}
-layers {
-  name: "pool2"
-  type: POOLING
-  pooling_param {
-    kernel_size: 4
-    stride: 2
-    pool: MAX
-  }
-  bottom: "h3"
-  top: "pool2"
 }
 layers {
   name: "loss"

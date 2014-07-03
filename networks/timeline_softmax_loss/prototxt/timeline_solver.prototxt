@@ -21,7 +21,7 @@ display: 100
 # The maximum number of iterations
 max_iter: 50000
 # snapshot intermediate results
-snapshot: 10
+snapshot: 5000
 snapshot_prefix: "timeline_softmax_loss"
 # solver mode: CPU or GPU
 solver_mode: GPU
