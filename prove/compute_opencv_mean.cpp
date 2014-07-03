@@ -2,7 +2,11 @@
 
 
 #include <fstream>
+#include <iostream>
+#include <sstream>
+
 #include <string>
+#include <vector>
 #include <stdio.h>
 #include <algorithm>
 
@@ -10,14 +14,13 @@
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/io.hpp"
 
-//#include "opencv2/imgproc/imgproc.hpp"
-//#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 using caffe::Datum;
 using caffe::BlobProto;
 using std::max;
 
-using namespace std;
 
 int main(int argc, char** argv) {
   ::google::InitGoogleLogging(argv[0]);
@@ -28,35 +31,43 @@ int main(int argc, char** argv) {
   char* file_list = argv[1];
   char* output_file = argv[2];
 
-  //read image from file_list
-  ifstream infile(file_list);
-  int path, label;
-  while (infile >> path >> label)
+  std::ifstream infile(file_list, std::ifstream::in);
+  std::vector<int> labels;
+  std::vector<string> paths;
+
+  //read labes and images
+  std::string line;
+  int check = false;
+  cv::Mat image;
+  int width;
+  int height;
+  string a_path;
+  int a_label;
+  while (std::getline(infile, line))
   {
-    std::cout << "path " << path << "label " << label << std::endl;
-    //cv::Mat image = cv::imread(path); 
+    std::stringstream ss(line); 
+    string path;
+    int label;
+    ss >> path;
+    ss >> label;
+    labels.push_back(label);
+    paths.push_back(path);
+    
+    if (!check)
+    {
+      check = !check;
+      image = cv::imread(path);
+      width = image.cols;
+      height = image.rows;
+      a_path = path;
+      a_label = label;
+    }
   }
-/*
-
-  vector<cv::Mat> images(batch_size, image);
-  cv::Mat image = cv::imread("/home/ladydisaster/libs/caffe/examples/images/cat.jpg"); // or cat.jpg
-  int batch_size = 6;
-
-
-
 
   Datum datum;
-  BlobProto sum_blob;
-  int count = 0;
-  // load first datum
-  if (db_backend == "leveldb") {
-    datum.ParseFromString(it->value().ToString());
-  } else if (db_backend == "lmdb") {
-    datum.ParseFromArray(mdb_value.mv_data, mdb_value.mv_size);
-  } else {
-    LOG(FATAL) << "Unknown db backend " << db_backend;
-  }
+  ReadImageToDatum(a_path, 1, width, height, &datum);
 
+  BlobProto sum_blob;
   sum_blob.set_num(1);
   sum_blob.set_channels(datum.channels());
   sum_blob.set_height(datum.height());
@@ -67,83 +78,37 @@ int main(int argc, char** argv) {
   for (int i = 0; i < size_in_datum; ++i) {
     sum_blob.add_data(0.);
   }
-  LOG(INFO) << "Starting Iteration";
-  if (db_backend == "leveldb") {  // leveldb
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-      // just a dummy operation
-      datum.ParseFromString(it->value().ToString());
-      const string& data = datum.data();
-      size_in_datum = std::max<int>(datum.data().size(),
-          datum.float_data_size());
-      CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size " <<
-          size_in_datum;
-      if (data.size() != 0) {
-        for (int i = 0; i < size_in_datum; ++i) {
-          sum_blob.set_data(i, sum_blob.data(i) + (uint8_t)data[i]);
-        }
-      } else {
-        for (int i = 0; i < size_in_datum; ++i) {
-          sum_blob.set_data(i, sum_blob.data(i) +
-              static_cast<float>(datum.float_data(i)));
-        }
+  int count = 0;
+  for (std::vector<std::string>::iterator it = paths.begin() ; it != paths.end(); ++it)
+  {
+    ReadImageToDatum(*it, labels[count], width, height, &datum);
+
+    const string& data = datum.data();
+    size_in_datum = std::max<int>(datum.data().size(),
+        datum.float_data_size());
+    CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size " <<
+        size_in_datum;
+    if (data.size() != 0) {
+      for (int i = 0; i < size_in_datum; ++i) {
+        sum_blob.set_data(i, sum_blob.data(i) + (uint8_t)data[i]);
       }
-      ++count;
-      if (count % 10000 == 0) {
-        LOG(ERROR) << "Processed " << count << " files.";
+    } else {
+      for (int i = 0; i < size_in_datum; ++i) {
+        sum_blob.set_data(i, sum_blob.data(i) +
+            static_cast<float>(datum.float_data(i)));
       }
     }
-  } else if (db_backend == "lmdb") {  // lmdb
-    CHECK_EQ(mdb_cursor_get(mdb_cursor, &mdb_key, &mdb_value, MDB_FIRST),
-        MDB_SUCCESS);
-    do {
-      // just a dummy operation
-      datum.ParseFromArray(mdb_value.mv_data, mdb_value.mv_size);
-      const string& data = datum.data();
-      size_in_datum = std::max<int>(datum.data().size(),
-          datum.float_data_size());
-      CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size " <<
-          size_in_datum;
-      if (data.size() != 0) {
-        for (int i = 0; i < size_in_datum; ++i) {
-          sum_blob.set_data(i, sum_blob.data(i) + (uint8_t)data[i]);
-        }
-      } else {
-        for (int i = 0; i < size_in_datum; ++i) {
-          sum_blob.set_data(i, sum_blob.data(i) +
-              static_cast<float>(datum.float_data(i)));
-        }
-      }
-      ++count;
-      if (count % 10000 == 0) {
-        LOG(ERROR) << "Processed " << count << " files.";
-      }
-    } while (mdb_cursor_get(mdb_cursor, &mdb_key, &mdb_value, MDB_NEXT)
-        == MDB_SUCCESS);
-  } else {
-    LOG(FATAL) << "Unknown db backend " << db_backend;
-  }
-
-  if (count % 10000 != 0) {
-    LOG(ERROR) << "Processed " << count << " files.";
+    ++count;
+    if (count % 10000 == 0) {
+      LOG(ERROR) << "Processed " << count << " files.";
+    }
   }
   for (int i = 0; i < sum_blob.data_size(); ++i) {
     sum_blob.set_data(i, sum_blob.data(i) / count);
   }
   // Write to disk
-  LOG(INFO) << "Write to " << argv[2];
-  WriteProtoToBinaryFile(sum_blob, argv[2]);
+  LOG(INFO) << "Write to " << output_file;
+  WriteProtoToBinaryFile(sum_blob, output_file);
 
-  // Clean up
-  if (db_backend == "leveldb") {
-    delete db;
-  } else if (db_backend == "lmdb") {
-    mdb_cursor_close(mdb_cursor);
-    mdb_close(mdb_env, mdb_dbi);
-    mdb_txn_abort(mdb_txn);
-    mdb_env_close(mdb_env);
-  } else {
-    LOG(FATAL) << "Unknown db backend " << db_backend;
-  }
-*/
   return 0;
 }

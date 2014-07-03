@@ -6,6 +6,7 @@ layers {
   top: "label"
   image_data_param {
     source: "/var/lib/data/timeline/pettorine_dataset/temp/file_listTRAIN.txt"
+    mean_file: "/home/claudia/caffe/networks/timeline_softmax_loss/timeline_mean.binaryproto"
     batch_size: 100
   }
 }
