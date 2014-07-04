@@ -147,6 +147,38 @@ class MVNLayer : public Layer<Dtype> {
   Blob<Dtype> sum_multiplier_;
 };
 
+/**
+ * @brief Ignores bottom blobs while producing no top blobs. (This is useful
+ *        to suppress outputs during testing.)
+ */
+template <typename Dtype>
+class SilenceLayer : public Layer<Dtype> {
+ public:
+  explicit SilenceLayer(const LayerParameter& param)
+      : Layer<Dtype>(param) {}
+  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+      vector<Blob<Dtype>*>* top) {}
+
+  virtual inline LayerParameter_LayerType type() const {
+    return LayerParameter_LayerType_SILENCE;
+  }
+  virtual inline int MinBottomBlobs() const { return 1; }
+  virtual inline int ExactNumTopBlobs() const { return 0; }
+
+ protected:
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+      vector<Blob<Dtype>*>* top) {}
+  // We can't define Forward_gpu here, since STUB_GPU will provide
+  // its own definition for CPU_ONLY mode.
+  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      vector<Blob<Dtype>*>* top);
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, vector<Blob<Dtype>*>* bottom);
+  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, vector<Blob<Dtype>*>* bottom);
+};
+
+
 /* SoftmaxLayer
 */
 template <typename Dtype>
