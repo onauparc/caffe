@@ -50,7 +50,11 @@ Makefile.config
 # Data and examples are either
 # 1. reference, and not casually committed
 # 2. custom, and live on their own unless they're deliberated contributed
-data/*
+data/cifar10/*
+data/ilsvrc12/*
+data/mnist/*
+data/pettorine_dataset/no_pettorine/*
+data/pettorine_dataset/pettorine/*
 examples/*
 
 # Generated documentation

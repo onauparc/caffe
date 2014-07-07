@@ -7,7 +7,7 @@ file(GLOB_RECURSE Tools_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 foreach(source ${Tools_SOURCES})
     get_filename_component(name ${source} NAME_WE)  
     add_executable(${name} ${source})
-    target_link_libraries(${name} caffe)
+    target_link_libraries(${name} caffe )
     
 ###    Install    #################################################################################
 

@@ -76,7 +76,7 @@ cuda_add_library(caffe_cu ${CU_SOURCES})
 add_dependencies(caffe proto)
 add_dependencies(caffe_cu proto)
 
-target_link_libraries(caffe caffe_cu proto
+target_link_libraries(caffe caffe_cu proto lmdb gtest
         ${GLOG_LIBRARIES}
         ${CUDA_curand_LIBRARY}
         ${HDF5_LIBRARIES} 
