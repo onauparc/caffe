@@ -79,9 +79,13 @@ int main(int argc, char** argv) {
   // Now result will contain the argmax results.
   const float* argmaxs = result[1]->cpu_data();
   const float* labels = result[0]->cpu_data();
+  int count = 0;
   for (int i = 0; i < result[1]->num(); ++i) {
-    LOG(ERROR)<< " Image: "<< i << " predicted:" << argmaxs[i] << " label: " << labels[i] ;
+    if (argmaxs[i] == labels[i]) count++;
+    LOG(ERROR)<< " Image: "<< i << " predicted:" << argmaxs[i] << " label: " << labels[i] << " " << (argmaxs[i] == labels[i]);
   }
+  LOG(ERROR)<< " TP: "<< count;
+  LOG(ERROR)<< " Accuracy: "<< float(count)/result[1]->num();
   
   return 0;
 }
