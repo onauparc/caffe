@@ -194,7 +194,7 @@ else ifeq ($(UNAME), Darwin)
 endif
 
 ifeq ($(LINUX), 1)
-	CXX ?= /usr/bin/g++
+  CXX := /usr/bin/g++-4.6
 	GCCVERSION := $(shell $(CXX) -dumpversion | cut -f1,2 -d.)
 	# older versions of gcc are too dumb to build boost with -Wuninitalized
 	ifeq ($(shell echo $(GCCVERSION) \< 4.6 | bc), 1)
@@ -244,7 +244,7 @@ else
 	ifeq ($(LINUX), 1)
 		ifeq ($(BLAS), atlas)
 			# Linux simply has cblas and atlas
-			LIBRARIES += cblas atlas
+			LIBRARIES += cblas
 		endif
 	else ifeq ($(OSX), 1)
 		# OS X packages atlas as the vecLib framework

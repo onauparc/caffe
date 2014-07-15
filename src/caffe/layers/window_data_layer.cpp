@@ -22,6 +22,10 @@
 #include "caffe/util/rng.hpp"
 #include "caffe/vision_layers.hpp"
 
+#ifndef CV_LOAD_IMAGE_COLOR
+#define CV_LOAD_IMAGE_COLOR 1
+#endif
+
 using std::string;
 using std::map;
 using std::pair;
