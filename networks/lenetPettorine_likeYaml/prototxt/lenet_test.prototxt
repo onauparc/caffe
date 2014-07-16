@@ -6,7 +6,7 @@ layers {
   top: "label"
   image_data_param {
     source: "/home/claudia/caffe/data/pettorine_dataset/50x50/temp/file_listTEST.txt"
-    mean_file: "/home/claudia/caffe/data/pettorine_dataset/50x50/timeline_mean.binaryproto"
+    #mean_file: "/home/claudia/caffe/data/pettorine_dataset/50x50/timeline_mean.binaryproto"
     batch_size: 100
 #    new_width: 45
 #    new_height: 45
