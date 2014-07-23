@@ -20,6 +20,10 @@ using std::iterator;
 using std::string;
 using std::pair;
 
+#ifndef CV_LOAD_IMAGE_COLOR
+#define CV_LOAD_IMAGE_COLOR 1
+#endif
+
 namespace caffe {
 
 template <typename Dtype>
