@@ -19,9 +19,9 @@ int main(int argc, char** argv) {
 
   //Timer t;
 
-  if (argc < 4 || argc > 6) {
+  if (argc < 4 || argc > 7) {
     LOG(ERROR) << "test_net net_proto pretrained_net_proto iterations "
-        << "[CPU/GPU] [Device ID]";
+        << "[CPU/GPU] [Device ID] filename";
     return 1;
   }
   Caffe::set_phase(Caffe::TEST);
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
   // Run AddImagesAndLabels and Forward
   cv::Mat image = cv::imread("/home/claudia/caffe/data/pettorine_dataset/50x50/real/dentro/000030_GT_009964.tiff");
-  vector<cv::Mat> images(1, image);
+  vector<cv::Mat> images(2, image);
   const shared_ptr<ImageDataLayer<float> > image_data_layer =
       boost::static_pointer_cast<ImageDataLayer<float> >(
           caffe_test_net.layer_by_name("data"));

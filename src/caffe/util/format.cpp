@@ -12,7 +12,7 @@ using std::string;
 
 bool OpenCVImageToDatum(
     const cv::Mat& image, const int label, const int height,
-    const int width, Datum* datum) {
+    const int width, Datum* datum, bool is_color) {
   cv::Mat cv_img;
   CHECK(image.data) << "Image data must not be NULL";
   CHECK_GT(image.rows, 0) << "Image height must be positive";
@@ -23,10 +23,12 @@ bool OpenCVImageToDatum(
   } else {
     cv_img = image;
   }
-  datum->set_channels(3);
+  int channels = (is_color) ? 3 : 1;
+  datum->set_channels(channels);
   datum->set_height(cv_img.rows);
   datum->set_width(cv_img.cols);
-  datum->add_label(label);
+  if (datum->label_size() == 0)
+    datum->add_label(label);
   datum->clear_data();
   datum->clear_float_data();
   string* datum_string = datum->mutable_data();
@@ -43,7 +45,7 @@ bool OpenCVImageToDatum(
 
 bool OpenCVImageToDatum(
     const cv::Mat& image, const int height,
-    const int width, Datum* datum) {
+    const int width, Datum* datum, bool is_color) {
   cv::Mat cv_img;
   CHECK(image.data) << "Image data must not be NULL";
   CHECK_GT(image.rows, 0) << "Image height must be positive";
@@ -54,7 +56,8 @@ bool OpenCVImageToDatum(
   } else {
     cv_img = image;
   }
-  datum->set_channels(3);
+  int channels = (is_color) ? 3 : 1;
+  datum->set_channels(channels);
   datum->set_height(cv_img.rows);
   datum->set_width(cv_img.cols);
   datum->clear_data();
@@ -70,12 +73,5 @@ bool OpenCVImageToDatum(
   }
   return true;
 }
-
-bool OpenCVImageToDatum(
-    const cv::Mat& image, const int height,
-    const int width, const bool is_color, Datum* datum){
-  return OpenCVImageToDatum(image, height, width, datum);
-};
-
 
 }  // namespace caffe

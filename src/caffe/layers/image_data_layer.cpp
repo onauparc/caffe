@@ -24,6 +24,10 @@ using std::pair;
 #define CV_LOAD_IMAGE_COLOR 1
 #endif
 
+#ifndef CV_LOAD_IMAGE_GRAYSCALE
+#define CV_LOAD_IMAGE_GRAYSCALE 0
+#endif
+
 namespace caffe {
 
 template <typename Dtype>
@@ -97,11 +101,13 @@ template <typename Dtype>
 void ImageDataLayer<Dtype>::AddImages(const vector<cv::Mat>& images) {
   size_t num_images = images.size();
   CHECK_GT(num_images, 0) << "There is no image to add";
+/*  ImageDataParameter* image_data_param = this->layer_param_.mutable_image_data_param();
+  image_data_param->set_batch_size(num_images);*/
+  
   int batch_size = this->layer_param_.image_data_param().batch_size();
   CHECK_LE(num_images, batch_size)<<
       "The number of added images " << images.size() <<
       " must be no greater than the batch size " << batch_size;
-
   const int crop_size = this->layer_param_.image_data_param().crop_size();
   const bool mirror = this->layer_param_.image_data_param().mirror();
   if (mirror && crop_size == 0) {
@@ -118,6 +124,9 @@ void ImageDataLayer<Dtype>::AddImages(const vector<cv::Mat>& images) {
   int data_index;
   OpenCVImageToDatum(images[item_id], new_height, new_width,
                      &datum);
+
+  //(*(this->top_))[0]->Reshape(batch_size, datum.channels(), new_width, new_height);
+
   if (!is_datum_set_up_) {
     SetUpWithDatum(crop_size, datum, top_);
   }
@@ -227,7 +236,8 @@ void* ImageDataLayerPrefetch(void* layer_pointer) {
   const bool mirror = image_data_param.mirror();
   const int new_height = image_data_param.new_height();
   const int new_width = image_data_param.new_width();
-  const bool images_in_color = image_data_param.images_in_color();
+//  const bool images_in_color = image_data_param.images_in_color();
+  const bool images_in_color = false;
 
   if (mirror && crop_size == 0) {
     LOG(FATAL) << "Current implementation requires mirror and crop_size to be "
