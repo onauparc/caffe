@@ -117,6 +117,7 @@ bool ReadImage(const string& filename,
 
 bool ReadImageToDatum(const string& filename, const int label,
     const int height, const int width, const bool is_color, Datum* datum) {
+
   int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
     CV_LOAD_IMAGE_GRAYSCALE);
   cv::Mat cv_img = cv::imread(filename, cv_read_flag);
@@ -124,13 +125,7 @@ bool ReadImageToDatum(const string& filename, const int label,
     LOG(ERROR) << "Could not open or find file " << filename;
     return false;
   }
-  return OpenCVImageToDatum(cv_img, label, height, width, datum);
-}
-
-bool ReadImageToDatum(const string& filename, const int label,
-    const int height, const int width, const bool is_color, Datum* datum) {
-
-  if (ReadImage(filename, height, width, is_color, datum)) {
+  if (OpenCVImageToDatum(cv_img, height, width, is_color, datum)) {
     if (datum->label_size() > 0) {
       datum->set_label(0, label);
     } else {
@@ -145,9 +140,16 @@ bool ReadImageToDatum(const string& filename, const int label,
 bool ReadImageToDatum(const string& filename, const std::vector<int> labels,
     const int height, const int width, const bool is_color, Datum* datum) {
 
+  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
+    CV_LOAD_IMAGE_GRAYSCALE);
+  cv::Mat cv_img = cv::imread(filename, cv_read_flag);
+  if (!cv_img.data) {
+    LOG(ERROR) << "Could not open or find file " << filename;
+    return false;
+  }
   if (labels.size() > 0) {
-    if (ReadImageToDatum(filename, labels[0],
-                         height, width, is_color, datum)) {
+    if (OpenCVImageToDatum(cv_img, labels[0],
+                         height, width, datum)) {
       for (int i = 1 ; i < labels.size(); ++i) {
         if (datum->label_size() <= i) {
           datum->add_label(labels[i]);
@@ -160,7 +162,7 @@ bool ReadImageToDatum(const string& filename, const std::vector<int> labels,
       return false;
     }
   } else {
-    return ReadImage(filename, height, width, is_color, datum);
+    return OpenCVImageToDatum(cv_img, height, width, datum);
   }
 }
 

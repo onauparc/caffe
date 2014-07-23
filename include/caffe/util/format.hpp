@@ -14,6 +14,15 @@ bool OpenCVImageToDatum(
     const cv::Mat& image, const int label, const int height,
     const int width, Datum* datum);
 
+bool OpenCVImageToDatum(
+    const cv::Mat& image, const int height,
+    const int width, const bool is_color, Datum* datum);
+
+bool OpenCVImageToDatum(
+    const cv::Mat& image, const int height,
+    const int width, Datum* datum);
 }  // namespace caffe
 
 #endif   // CAFFE_UTIL_FORMAT_H_
+
+
