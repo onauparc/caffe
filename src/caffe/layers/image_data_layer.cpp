@@ -97,6 +97,8 @@ void ProcessImageDatum(
 //  top_label[item_id] = datum.label(); //NON FUNZIONA
 }
 
+#import <stdio.h>
+
 template <typename Dtype>
 void ImageDataLayer<Dtype>::AddImages(const vector<cv::Mat>& images) {
   size_t num_images = images.size();
@@ -172,7 +174,7 @@ void ImageDataLayer<Dtype>::SetUpWithDatum(
         new Blob<Dtype>(this->layer_param_.image_data_param().batch_size(),
                         datum.channels(), crop_size, crop_size));
   } else {
-    (*top)[0]->Reshape(
+  (*top)[0]->Reshape(
         this->layer_param_.image_data_param().batch_size(), datum.channels(),
         datum.height(), datum.width());
     prefetch_data_.reset(new Blob<Dtype>(
@@ -209,6 +211,7 @@ void ImageDataLayer<Dtype>::SetUpWithDatum(
   prefetch_data_->mutable_cpu_data();
   prefetch_label_->mutable_cpu_data();
   data_mean_.cpu_data();
+  std::cout << "sono qui 5" << std::endl;
 
   is_datum_set_up_ = true;
 }
@@ -340,9 +343,11 @@ ImageDataLayer<Dtype>::~ImageDataLayer<Dtype>() {
   JoinPrefetchThread();
 }
 
-template <typename Dtype>
+/*template <typename Dtype>
 void ImageDataLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
       vector<Blob<Dtype>*>* top) {
+  is_datum_set_up_ = false;
+  top_ = top;
   Layer<Dtype>::SetUp(bottom, top);
   const int new_height  = this->layer_param_.image_data_param().new_height();
   const int new_width  = this->layer_param_.image_data_param().new_height();
@@ -438,7 +443,82 @@ void ImageDataLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
   DLOG(INFO) << "Initializing prefetch";
   CreatePrefetchThread();
   DLOG(INFO) << "Prefetch initialized.";
+}*/
+
+template <typename Dtype>
+void ImageDataLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
+      vector<Blob<Dtype>*>* top) {
+  is_datum_set_up_ = false;
+  top_ = top;
+  Layer<Dtype>::SetUp(bottom, top);
+  const int new_height  = this->layer_param_.image_data_param().new_height();
+  const int new_width  = this->layer_param_.image_data_param().new_height();
+  const bool images_in_color =
+       this->layer_param_.image_data_param().images_in_color();
+  if (top->size() == 2) {
+   output_labels_ = true;
+  } else {
+   output_labels_ = false;
+  }
+  CHECK((new_height == 0 && new_width == 0) ||
+      (new_height > 0 && new_width > 0)) << "Current implementation requires "
+      "new_height and new_width to be set at the same time.";
+ // label
+  (*top)[1]->Reshape(this->layer_param_.image_data_param().batch_size(),
+                     1, 1, 1);
+  if (this->layer_param_.image_data_param().has_source()) {
+    // Read the file with filenames and labels
+    ReadImagesList(this->layer_param_.image_data_param().source(), &lines_);
+
+  if (this->layer_param_.image_data_param().shuffle()) {
+    // randomly shuffle data
+    LOG(INFO) << "Shuffling data";
+    const unsigned int prefetch_rng_seed = caffe_rng_rand();
+    prefetch_rng_.reset(new Caffe::RNG(prefetch_rng_seed));
+    ShuffleImages();
+  }
+  LOG(INFO) << "A total of " << lines_.size() << " images.";
+
+    lines_id_ = 0;
+    // Check if we would need to randomly skip a few data points
+    if (this->layer_param_.image_data_param().rand_skip()) {
+      // NOLINT_NEXT_LINE(runtime/threadsafe_fn)
+      unsigned int skip = rand() %
+          this->layer_param_.image_data_param().rand_skip();
+      LOG(INFO) << "Skipping first " << skip << " data points.";
+      CHECK_GT(lines_.size(), skip) << "Not enought points to skip";
+      lines_id_ = skip;
+    }
+    // Read a data point, and use it to initialize the top blob.
+    Datum datum;
+    CHECK(ReadImageToDatum(lines_[lines_id_].first, lines_[lines_id_].second,
+                         new_height, new_width, images_in_color, &datum));
+    // image
+    const int crop_size = this->layer_param_.image_data_param().crop_size();
+    const int batch_size = this->layer_param_.image_data_param().batch_size();
+    SetUpWithDatum(crop_size, datum, top);
+    
+    int num_labels = datum.label_size();
+    // label
+   if (output_labels_) {
+     CHECK_GT(num_labels, 0) << "File should contain labels for top[1]";
+     (*top)[1]->Reshape(batch_size, num_labels, 1, 1);
+     LOG(INFO) << "output label size: " << (*top)[1]->num() << ","
+       << (*top)[1]->channels() << "," << (*top)[1]->height() << ","
+       << (*top)[1]->width();
+     prefetch_label_.reset(new Blob<Dtype>(batch_size, num_labels, 1, 1));
+   }
+    // datum size
+    datum_channels_ = datum.channels();
+    datum_height_ = datum.height();
+    
+    DLOG(INFO) << "Initializing prefetch";
+    CHECK(!pthread_create(&thread_, NULL, ImageDataLayerPrefetch<Dtype>,
+            reinterpret_cast<void*>(this))) << "Pthread execution failed.";
+    DLOG(INFO) << "Prefetch initialized.";
+  }  // if (this->layer_param_.image_data_param().has_source()) {
 }
+
 
 template <typename Dtype>
 void ImageDataLayer<Dtype>::CreatePrefetchThread() {

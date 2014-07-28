@@ -8,6 +8,8 @@
 #include "caffe/syncedmem.hpp"
 #include "caffe/util/math_functions.hpp"
 
+#include <stdio.h>
+#include <iostream>
 namespace caffe {
 
 template <typename Dtype>
@@ -44,6 +46,7 @@ Blob<Dtype>::Blob(const int num, const int channels, const int height,
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::cpu_data() const {
+  std::cout << "sono qui 01" << std::endl;
   CHECK(data_);
   return (const Dtype*)data_->cpu_data();
 }
@@ -108,10 +111,13 @@ void Blob<Dtype>::ShareDiff(const Blob& other) {
   diff_ = other.diff();
 }
 
+#include <stdio.h>
+#include <iostream>
+
 // The "update" method is used for parameter blobs in a Net, which are stored
 // as Blob<float> or Blob<double> -- hence we do not define it for
 // Blob<int> or Blob<unsigned int>.
-template <> void Blob<unsigned int>::Update() { NOT_IMPLEMENTED; }
+template <> void Blob<unsigned int>::Update() {   std::cout << "Update" << std::endl; NOT_IMPLEMENTED; }
 template <> void Blob<int>::Update() { NOT_IMPLEMENTED; }
 
 template <typename Dtype>
