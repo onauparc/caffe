@@ -95,10 +95,10 @@ class Layer {
   virtual inline bool AllowForceBackward(const int bottom_index) const {
     return true;
   }
-
- protected:
   // The protobuf that stores the layer parameters
   LayerParameter layer_param_;
+
+ protected:
   // The vector that stores the parameters as a set of blobs.
   vector<shared_ptr<Blob<Dtype> > > blobs_;
 

@@ -211,7 +211,6 @@ void ImageDataLayer<Dtype>::SetUpWithDatum(
   prefetch_data_->mutable_cpu_data();
   prefetch_label_->mutable_cpu_data();
   data_mean_.cpu_data();
-  std::cout << "sono qui 5" << std::endl;
 
   is_datum_set_up_ = true;
 }

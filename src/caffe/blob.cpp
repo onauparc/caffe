@@ -46,7 +46,6 @@ Blob<Dtype>::Blob(const int num, const int channels, const int height,
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::cpu_data() const {
-  std::cout << "sono qui 01" << std::endl;
   CHECK(data_);
   return (const Dtype*)data_->cpu_data();
 }
