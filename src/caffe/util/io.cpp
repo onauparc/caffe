@@ -75,7 +75,6 @@ void WriteProtoToBinaryFile(const Message& proto, const char* filename) {
 bool ReadImage(const string& filename,
     const int height, const int width, const bool is_color, Datum* datum) {
   cv::Mat cv_img;
-
   int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
     CV_LOAD_IMAGE_GRAYSCALE);
   if (height > 0 && width > 0) {

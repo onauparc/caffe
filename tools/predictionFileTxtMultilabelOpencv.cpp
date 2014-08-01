@@ -12,8 +12,12 @@
 #include "caffe/util/io.hpp"
 #include "caffe/blob.hpp"
 
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
 using namespace caffe;  // NOLINT(build/namespaces)
 using namespace std;
+using namespace cv;
 
 int main(int argc, char** argv) {
 
@@ -24,6 +28,7 @@ int main(int argc, char** argv) {
         << "[CPU/GPU] [Device ID] filename";
     return 1;
   }
+  string filename = argv[6];
   Caffe::set_phase(Caffe::TEST);
 
   //Setting CPU or GPU
@@ -43,18 +48,25 @@ int main(int argc, char** argv) {
   Net<float> caffe_test_net(argv[1]);
   //get trained net
   caffe_test_net.CopyTrainedLayersFrom(argv[2]);
-  // Run ForwardPrefilled
-  float loss;
-//  const vector<Blob<float>*>& result = caffe_test_net.ForwardPrefilled(&loss);
 
-  // Run AddImagesAndLabels and Forward
-  cv::Mat image = cv::imread("/home/claudia/caffe/data/pettorine_dataset/50x50/real/dentro/000030_GT_009964.tiff");
-  vector<cv::Mat> images(2, image);
+  //read opencv image
+  cv::Mat image = cv::imread(filename);
+
+  vector<cv::Mat> images(1, image);
   const shared_ptr<ImageDataLayer<float> > image_data_layer =
       boost::static_pointer_cast<ImageDataLayer<float> >(
           caffe_test_net.layer_by_name("data"));
+  //add blur
+  /*for (int i = 0; i < images.size(); ++i)
+  {
+    GaussianBlur(images[i], images[i], Size(3,3), 1);
+  }*/
+  
+  //add images to layer
   image_data_layer->AddImages(images);
+  //make prediction 
   vector<Blob<float>* > dummy_bottom_vec;
+  float loss;
   const vector<Blob<float>*>& result = caffe_test_net.Forward(dummy_bottom_vec, &loss);
 
   LOG(ERROR)<< "Output result size: "<< result.size();
@@ -65,28 +77,20 @@ int main(int argc, char** argv) {
   // Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   int count = result[0]->count();
   int max = -1;
-  int max_prob = -1;
+  int max_prob = -100;
   stringstream ss;
    
   int i = 0;
   for (int ind = 0; ind < count; ++ind) {
-    // Accuracy
     int label = static_cast<int>(bottom_label[ind]);
-//    cout << "Prob: " << bottom_data[ind] << " label: " << label << endl;
-    if (bottom_data[ind] > 0)
-    {
-//      cout << ind << ": " << ind%10 << endl;
-      if (bottom_data[ind] > max_prob) {
-        max_prob = bottom_data[ind];
-        max = i%10;
-      }
+    if (bottom_data[ind] > max_prob) {
+      max_prob = bottom_data[ind];
+      max = i%10;
     }
     if ((i+1)%10 == 0 ) {
-//      cout << "-------Pred: " << max << endl;
       ss << max << " ";
       max = -1;
       max_prob = -1;
-      //cout << endl;
     }
     i++;
     if ((ind+1)%41 == 0 ) {
@@ -94,7 +98,7 @@ int main(int argc, char** argv) {
       cout << "Predicted: " << ss.str() << endl;
       ss.str("");
       max = -1;
-      max_prob = -1;
+      max_prob = -100;
       i = 0;
     }
   }

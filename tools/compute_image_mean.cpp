@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
                << " db_backend[leveldb or lmdb]";
     return 1;
   }
-
   string db_backend = "leveldb";
+  
   if (argc == 4) {
     db_backend = string(argv[3]);
   }

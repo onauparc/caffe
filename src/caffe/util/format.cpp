@@ -32,7 +32,7 @@ bool OpenCVImageToDatum(
   datum->clear_data();
   datum->clear_float_data();
   string* datum_string = datum->mutable_data();
-  for (int c = 0; c < 3; ++c) {
+  for (int c = 0; c < channels; ++c) {
     for (int h = 0; h < cv_img.rows; ++h) {
       for (int w = 0; w < cv_img.cols; ++w) {
         datum_string->push_back(
@@ -63,7 +63,7 @@ bool OpenCVImageToDatum(
   datum->clear_data();
   datum->clear_float_data();
   string* datum_string = datum->mutable_data();
-  for (int c = 0; c < 3; ++c) {
+  for (int c = 0; c < channels; ++c) {
     for (int h = 0; h < cv_img.rows; ++h) {
       for (int w = 0; w < cv_img.cols; ++w) {
         datum_string->push_back(
