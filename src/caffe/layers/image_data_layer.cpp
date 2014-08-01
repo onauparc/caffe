@@ -153,8 +153,9 @@ void ImageDataLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
   Layer<Dtype>::SetUp(bottom, top);
   const int new_height  = this->layer_param_.image_data_param().new_height();
   const int new_width  = this->layer_param_.image_data_param().new_height();
-  const bool images_in_color =
-      this->layer_param_.image_data_param().images_in_color();
+//  const bool images_in_color =
+  //    this->layer_param_.image_data_param().images_in_color();
+  const bool images_in_color = false;
   if (top->size() == 2) {
     output_labels_ = true;
   } else {
