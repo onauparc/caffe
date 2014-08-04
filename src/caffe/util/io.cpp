@@ -20,6 +20,8 @@
 #include "caffe/util/io.hpp"
 #include "caffe/proto/caffe.pb.h"
 
+#include <iostream>
+
 using std::fstream;
 using std::ios;
 using std::max;
@@ -78,6 +80,8 @@ bool ReadImage(const string& filename,
 
   int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
     CV_LOAD_IMAGE_GRAYSCALE);
+    
+  //std::cout<<"(IO.CPP) is_color: "<<is_color<<std::endl;
   if (height > 0 && width > 0) {
     cv::Mat cv_img_origin = cv::imread(filename, cv_read_flag);
     cv::resize(cv_img_origin, cv_img, cv::Size(height, width));
