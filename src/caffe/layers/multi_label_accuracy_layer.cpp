@@ -10,6 +10,9 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/io.hpp"
 
+#include <iostream>     // std::cout
+#include <iterator>     // std::distance
+#include <list>         // std::list
 using std::max;
 
 
@@ -49,7 +52,7 @@ Dtype MultiLabelAccuracyLayer<Dtype>::Forward_cpu(
   // Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   int count = bottom[0]->count();
 
-  for (int ind = 0; ind < count; ++ind) {
+  /*for (int ind = 0; ind < count; ++ind) {
     // Accuracy
     int label = static_cast<int>(bottom_label[ind]);
     if (label > 0) {
@@ -64,6 +67,86 @@ Dtype MultiLabelAccuracyLayer<Dtype>::Forward_cpu(
       false_positive += (bottom_data[ind] >= 0);
       count_neg++;
     }
+  }*/
+  
+  
+  LOG(ERROR) << "ATTENZIONE, LA MULTILABEL ACCURACY E' CALCOLATA SUPPONENDO CHE LE CLASSI SIANO 41, CAMBIARE QUESTO VALORE IN MULTI_LABEL_ACCURACY_LAYER.CPP O RENDERLO DINAMICO";
+  int num_labels_for_example = 41;
+  for (int ind = 0; ind < (count/num_labels_for_example); ++ind) {
+    //controllo prima se è pettorina/non pettorina
+    int index_last_label = (ind*num_labels_for_example) + num_labels_for_example - 1;
+    int last_label = static_cast<int>(bottom_label[index_last_label]);
+    if(last_label < 0) //gt non pettorina
+    {
+      count_neg++;
+      if(bottom_data[index_last_label] < 0) //predict non pettorina
+      {
+        true_negative += 1;
+      }
+      else if(bottom_data[index_last_label] >= 0)//predict pettorina
+      {
+        false_positive += 1;
+      }
+    }
+    else if(last_label > 0) //gt pettorina
+    {
+      count_pos++;
+      int index_next_labels = (ind*num_labels_for_example);
+      int num_0 = std::distance(&bottom_data[index_next_labels], std::max_element(&bottom_data[index_next_labels],&bottom_data[index_next_labels] + 10));
+      int num_1 = std::distance(&bottom_data[index_next_labels]+10, std::max_element(&bottom_data[index_next_labels]+10,&bottom_data[index_next_labels] + 20));
+      int num_2 = std::distance(&bottom_data[index_next_labels]+20, std::max_element(&bottom_data[index_next_labels]+20,&bottom_data[index_next_labels] + 30));
+      int num_3 = std::distance(&bottom_data[index_next_labels]+30, std::max_element(&bottom_data[index_next_labels]+30,&bottom_data[index_next_labels] + 40));
+      //std::cout<<num_0<<num_1<<num_2<<num_3<<std::endl;
+      
+      if(bottom_label[index_next_labels + num_0] >= 0 && bottom_label[index_next_labels + 10 + num_1] >= 0 && bottom_label[index_next_labels + 20 + num_2] >= 0 && bottom_label[index_next_labels + 30 + num_3] >= 0)
+      {
+        true_positive += 1;
+      }
+      else
+      {
+        false_negative += 1;
+      }
+      
+      /*
+      count_pos++;
+      bool found_false_negative = false;
+      for(int ind_label_pett = 0; ind_label_pett < num_labels_for_example - 1; ind_label_pett++)
+      {
+        int index_next_label = (ind*num_labels_for_example) + ind_label_pett;
+        int label = static_cast<int>(bottom_label[index_next_label]);
+        
+        if(label > 0)
+        {
+          if(bottom_data[index_next_label] < 0) //la label è discordante, quindi il numero cercato è sicuramente diverso
+          {
+            found_false_negative = true;
+            break;
+          }
+        }
+        else if(label < 0)
+        {
+          if(bottom_data[index_next_label] >= 0) //la label è discordante, però POTREBBE ANCORA ESSERE RECUPERATO IL NUMERO CORRETTO CON L'ARGMAX
+          {
+            found_false_negative = true;
+            break;
+          }
+        }
+        
+      }
+      if(found_false_negative == true)
+      {
+        false_negative += 1;
+      }
+      else //tutti i numeri sono corretti
+      {
+        true_positive += 1;
+      }
+      */
+      
+    }
+    
+    
+    
   }
   Dtype sensitivity = (count_pos > 0)? (true_positive / count_pos) : 0;
   Dtype specificity = (count_neg > 0)? (true_negative / count_neg) : 0;
@@ -75,6 +158,8 @@ Dtype MultiLabelAccuracyLayer<Dtype>::Forward_cpu(
     2 * true_positive /
     (2 * true_positive + false_positive + false_negative) : 0;
 
+  LOG(ERROR) << "true_positive/count_pos: " << true_positive<<"/"<<count_pos;
+  LOG(ERROR) << "true_negative/count_neg: " << true_negative<<"/"<<count_neg;
   DLOG(INFO) << "Sensitivity: " << sensitivity;
   DLOG(INFO) << "Specificity: " << specificity;
   DLOG(INFO) << "Harmonic Mean of Sens and Spec: " << harmmean;

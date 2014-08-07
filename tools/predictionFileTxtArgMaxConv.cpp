@@ -124,9 +124,14 @@ int main(int argc, char** argv) {
     //controllo se è una pettorina
     ind++;
     cout << paths[i] << endl;
-    cout << labels[i] << ": " << ss.str();
-    if (bottom_data[ind] <= 0){
+    cout <<"("<<ind<<")" <<labels[i] << ": " << ss.str();
+    if (bottom_data[ind] < 0){
       ss.str("NO TEXT");
+      cout << "NO TEXT";
+      if (labels[i].compare("") == 0){
+        cout << " <-- CORRETTO!!!";
+        true_positives++;
+      }
     }
     else{
       if (labels[i].compare(ss.str()) == 0){

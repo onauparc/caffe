@@ -135,6 +135,12 @@ bool ReadImageToDatum(const string& filename, const int label,
   }
 }
 
+inline bool ReadImageToDatum(const string& filename, const int label,
+    const int height, const int width, Datum* datum) {
+  std::cout<<std::endl<<std::endl<<std::endl<<"(IO.CPP) QUESTO NON DOVREBBE SUCCEDERE!"<<std::endl<<std::endl<<std::endl;
+  return ReadImageToDatum(filename, label, height, width, true, datum);
+}
+
 bool ReadImageToDatum(const string& filename, const std::vector<int> labels,
     const int height, const int width, const bool is_color, Datum* datum) {
 
