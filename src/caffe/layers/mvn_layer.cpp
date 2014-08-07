@@ -24,9 +24,10 @@ void MVNLayer<Dtype>::SetUp(const vector<Blob<Dtype>*>& bottom,
   sum_multiplier_.Reshape(1, 1,
       bottom[0]->height(), bottom[0]->width());
   Dtype* multiplier_data = sum_multiplier_.mutable_cpu_data();
-  for (int i = 0; i < sum_multiplier_.count(); ++i) {
+  /*for (int i = 0; i < sum_multiplier_.count(); ++i) {
     multiplier_data[i] = 1.;
-  }
+  }*/
+  caffe_set(sum_multiplier_.count(), Dtype(1), multiplier_data);
 }
 
 template <typename Dtype>
