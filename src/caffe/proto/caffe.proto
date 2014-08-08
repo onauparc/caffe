@@ -229,7 +229,7 @@ message LayerParameter {
     MULTI_LABEL_ACCURACY = 33;
     MULTI_LABEL_LOSS = 34;
     MULTINOMIAL_LOGISTIC_LOSS = 16;
-    MVN = 34;
+    MVN = 35;
     POOLING = 17;
     POWER = 26;
     RELU = 18;
@@ -449,6 +449,9 @@ message ImageDataParameter {
   // It will also resize images if new_height or new_width are not zero.
   optional uint32 new_height = 9 [default = 0];
   optional uint32 new_width = 10 [default = 0];
+  // By default assumes images are in color
+  optional bool images_in_color = 11 [default = true];
+
 }
 
 // Message that stores parameters InfogainLossLayer
