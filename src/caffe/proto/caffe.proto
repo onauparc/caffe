@@ -127,11 +127,7 @@ message LayerParameter {
   // line above the enum. Update the next available ID when you add a new
   // LayerType.
   //
-<<<<<<< HEAD
-  // LayerType next available ID: 35 (last added: MULTI_LABEL_LOSS)
-=======
-  // LayerType next available ID: 35 (last added: MVN)
->>>>>>> b04aa00... mean-variance normalization layer
+  // LayerType next available ID: 36 (last added: MVN)
   enum LayerType {
     // "NONE" layer type is 0th enum element so that we don't cause confusion
     // by defaulting to an existent LayerType (instead, should usually error if
@@ -160,7 +156,7 @@ message LayerParameter {
     MULTI_LABEL_ACCURACY = 33;
     MULTI_LABEL_LOSS = 34;
     MULTINOMIAL_LOGISTIC_LOSS = 16;
-    MVN = 34;
+    MVN = 35;
     POOLING = 17;
     POWER = 26;
     RELU = 18;
@@ -216,6 +212,7 @@ message LayerParameter {
   optional WindowDataParameter window_data_param = 20;
   optional ThresholdParameter threshold_param = 25;
   optional HingeLossParameter hinge_loss_param = 28;
+  optional MVNParameter mvn_param = 34;
 
   // DEPRECATED: The layer parameters specified as a V0LayerParameter.
   // This should never be used by any code except to upgrade to the new
@@ -407,6 +404,15 @@ message MemoryDataParameter {
   optional uint32 channels = 2;
   optional uint32 height = 3;
   optional uint32 width = 4;
+}
+
+// Message that stores parameters used by MVNLayer
+message MVNParameter {
+  // This parameter can be set to false to normalize mean only
+  optional bool normalize_variance = 1 [default = true];
+  
+  // This parameter can be set to true to perform DNN-like MVN
+  optional bool across_channels = 2 [default = false];
 }
 
 // Message that stores parameters used by PoolingLayer
