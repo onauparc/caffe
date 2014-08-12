@@ -63,6 +63,8 @@ TYPED_TEST(MVNLayerTest, TestForward) {
       sum /= height * width;
       var /= height * width;
 
+      LOG(ERROR) <<"sum: "<<sum<<std::endl;
+      LOG(ERROR) <<"var: "<<var<<std::endl;
       const Dtype kErrorBound = 0.001;
       // expect zero mean
       EXPECT_NEAR(0, sum, kErrorBound);
