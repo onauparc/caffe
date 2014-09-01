@@ -238,8 +238,8 @@ void* ImageDataLayerPrefetch(void* layer_pointer) {
   const bool mirror = image_data_param.mirror();
   const int new_height = image_data_param.new_height();
   const int new_width = image_data_param.new_width();
-//  const bool images_in_color = image_data_param.images_in_color();
-  const bool images_in_color = false;
+  const bool images_in_color = image_data_param.images_in_color();
+  //const bool images_in_color = false;
 
   if (mirror && crop_size == 0) {
     LOG(FATAL) << "Current implementation requires mirror and crop_size to be "
