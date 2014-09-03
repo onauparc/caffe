@@ -12,13 +12,13 @@ namespace caffe {
 
 bool OpenCVImageToDatum(
     const cv::Mat& image, const int label, const int height,
-//    const int width, Datum* datum, bool is_color=false);
-    const int width, Datum* datum, bool is_color=true);
+    const int width, Datum* datum, bool is_color=false);
+//    const int width, Datum* datum, bool is_color=true);
     
 bool OpenCVImageToDatum(
     const cv::Mat& image, const int height,
-//    const int width, Datum* datum, bool is_color=false);
-    const int width, Datum* datum, bool is_color=true);
+    const int width, Datum* datum, bool is_color=false);
+//    const int width, Datum* datum, bool is_color=true);
     
 }  // namespace caffe
 
