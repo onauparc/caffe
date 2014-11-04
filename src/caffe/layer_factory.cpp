@@ -57,10 +57,14 @@ Layer<Dtype>* GetLayer(const LayerParameter& param) {
     return new LRNLayer<Dtype>(param);
   case LayerParameter_LayerType_MEMORY_DATA:
     return new MemoryDataLayer<Dtype>(param);
-  case LayerParameter_LayerType_MVN:
-    return new MVNLayer<Dtype>(param);
+  case LayerParameter_LayerType_MULTI_LABEL_ACCURACY:
+    return new MultiLabelAccuracyLayer<Dtype>(param);
+  case LayerParameter_LayerType_MULTI_LABEL_LOSS:
+    return new MultiLabelLossLayer<Dtype>(param);
   case LayerParameter_LayerType_MULTINOMIAL_LOGISTIC_LOSS:
     return new MultinomialLogisticLossLayer<Dtype>(param);
+  case LayerParameter_LayerType_MVN:
+    return new MVNLayer<Dtype>(param);
   case LayerParameter_LayerType_POOLING:
     return new PoolingLayer<Dtype>(param);
   case LayerParameter_LayerType_POWER:
@@ -71,8 +75,8 @@ Layer<Dtype>* GetLayer(const LayerParameter& param) {
     return new SigmoidLayer<Dtype>(param);
   case LayerParameter_LayerType_SIGMOID_CROSS_ENTROPY_LOSS:
     return new SigmoidCrossEntropyLossLayer<Dtype>(param);
-  case LayerParameter_LayerType_SLICE:
-    return new SliceLayer<Dtype>(param);
+  /*case LayerParameter_LayerType_SLICE:
+    return new SliceLayer<Dtype>(param);*/
   case LayerParameter_LayerType_SOFTMAX:
     return new SoftmaxLayer<Dtype>(param);
   case LayerParameter_LayerType_SOFTMAX_LOSS:

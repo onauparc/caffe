@@ -152,6 +152,7 @@ CUDA_LIB_DIR := $(CUDA_DIR)/lib64 $(CUDA_DIR)/lib
 INCLUDE_DIRS += $(BUILD_INCLUDE_DIR)
 INCLUDE_DIRS += ./src ./include $(CUDA_INCLUDE_DIR)
 LIBRARY_DIRS += $(CUDA_LIB_DIR)
+LIBRARY_DIRS += /usr/lib/x86_64-linux-gnu/hdf5/serial/
 LIBRARIES := cudart cublas curand \
 	pthread \
 	glog protobuf leveldb snappy \

@@ -141,6 +141,7 @@ int main(int argc, char** argv) {
     }
     cout << endl;
     predicted.push_back(ss.str());
+    cout << "Predicted: " << ss.str() << endl;
     //cout << "-----------------------------------------------------------------" << endl;
   }
   float accuracy = 0;

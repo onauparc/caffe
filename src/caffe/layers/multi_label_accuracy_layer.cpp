@@ -88,8 +88,11 @@ Dtype MultiLabelAccuracyLayer<Dtype>::Forward_cpu(
         false_positive += 1;
       }
     }
-    else if(last_label > 0) //gt pettorina
+    else if(last_label >= 0) //gt pettorina
     {
+      if(last_label == 0)
+        LOG(ERROR) << "LAST LABEL E' esattamente zero!";
+      
       count_pos++;
       int index_next_labels = (ind*num_labels_for_example);
       int num_0 = std::distance(&bottom_data[index_next_labels], std::max_element(&bottom_data[index_next_labels],&bottom_data[index_next_labels] + 10));

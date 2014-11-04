@@ -211,7 +211,7 @@ class SplitLayer : public Layer<Dtype> {
 /* SliceLayer
   Takes one blobs and slices it along either num or channel dim,
   outputting the result into as many top blobs as needed.
-*/
+
 template <typename Dtype>
 class SliceLayer : public Layer<Dtype> {
  public:
@@ -245,7 +245,7 @@ class SliceLayer : public Layer<Dtype> {
   int slice_dim_;
   vector<int> slice_point_;
 };
-
+*/
 }  // namespace caffe
 
 #endif  // CAFFE_COMMON_LAYERS_HPP_

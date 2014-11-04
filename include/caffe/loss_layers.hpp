@@ -10,7 +10,7 @@
 #include "leveldb/db.h"
 #include "pthread.h"
 #include "boost/scoped_ptr.hpp"
-#include "hdf5.h"
+#include "hdf5/serial/hdf5.h"
 
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
