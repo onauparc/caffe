@@ -12,8 +12,8 @@ TODO:
 #include <vector>
 #include <fstream>  // NOLINT(readability/streams)
 
-#include "hdf5/serial/hdf5.h"
-#include "hdf5/serial/hdf5_hl.h"
+#include "hdf5.h"
+#include "hdf5_hl.h"
 
 #include "caffe/layer.hpp"
 #include "caffe/util/io.hpp"

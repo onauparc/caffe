@@ -7,7 +7,7 @@
 namespace caffe {
 
 template <typename Dtype>
-void SilenceLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+Dtype SilenceLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       vector<Blob<Dtype>*>* top) {
   // Do nothing.
 }
