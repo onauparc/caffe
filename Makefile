@@ -161,15 +161,29 @@ ifneq ("$(wildcard $(CUDA_DIR)/lib64)","")
 endif
 CUDA_LIB_DIR += $(CUDA_DIR)/lib
 
-INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include
+INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include /usr/include/hdf5/serial
 ifneq ($(CPU_ONLY), 1)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
 	LIBRARIES := cudart cublas curand
 endif
 LIBRARIES += glog gflags protobuf leveldb snappy \
-	lmdb boost_system hdf5_hl hdf5 m \
-	opencv_core opencv_highgui opencv_imgproc
+	lmdb boost_system hdf5_serial_hl hdf5_serial m \
+=======
+CUDA_LIB_DIR := $(CUDA_DIR)/lib64 $(CUDA_DIR)/lib
+
+INCLUDE_DIRS += $(BUILD_INCLUDE_DIR)
+INCLUDE_DIRS += ./src ./include $(CUDA_INCLUDE_DIR)
+INCLUDE_DIRS += /usr/include/hdf5/serial/
+LIBRARY_DIRS += $(CUDA_LIB_DIR)
+LIBRARY_DIRS += /usr/lib/x86_64-linux-gnu/hdf5/serial/
+LIBRARIES := cudart cublas curand \
+	pthread \
+	glog protobuf leveldb snappy \
+	lmdb \
+	boost_system \
+	hdf5_hl hdf5 \
+	opencv_core opencv_highgui opencv_imgproc gflags
 PYTHON_LIBRARIES := boost_python python2.7
 WARNINGS := -Wall -Wno-sign-compare
 

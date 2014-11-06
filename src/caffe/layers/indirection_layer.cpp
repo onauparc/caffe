@@ -13,6 +13,7 @@ void IndirectionLayer<Dtype>::LayerSetUp(
   const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   const IndirectionParameter& param = this->layer_param_.indirection_param();
   int size = param.source_size();
+
   data_length_ = param.channels() * param.height() * param.width();
 
   for (int i = 0; i < size; ++i) {
@@ -34,9 +35,10 @@ void IndirectionLayer<Dtype>::Reshape(
 
   const IndirectionParameter& param = this->layer_param_.indirection_param();
   int num = label_blob->num();
-  int channels = param.channels();
+  int channels = param.channels()*41;
   int height = param.height();
   int width = param.width();
+  data_length_ = channels * height * width;
 
   for (int i = 0; i < top.size(); ++i)
       top[i]->Reshape(num, channels, height, width);
@@ -51,15 +53,20 @@ void IndirectionLayer<Dtype>::Forward_cpu(
 
   for (int i = 0; i < top.size(); ++i) {
     Dtype* out = top[i]->mutable_cpu_data();
+    
     int num = top[i]->num();
+    //LOG(ERROR) << "------------num: " << num;
     for (int j = 0; j < num; ++j) {
       int index = labels[j];
       CHECK_EQ(Dtype(index), labels[j])
           << "Got non-integer as label input: " << labels[j];
-      CHECK_EQ(readers_[i]->read(index, out, data_length_), data_length_)
-          << "Reading data at index " << index << " failed. The source file"
-             " for the mapping is " << param.source(i);
-      out += data_length_;
+
+
+        CHECK_EQ(readers_[i]->read(index, out, data_length_), /*data_length_*/1)
+            << "Reading data at index " << index << " failed. The source file"
+               " for the mapping is " << param.source(i);
+
+        out += data_length_;
     }
   }
 }

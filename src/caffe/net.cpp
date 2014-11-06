@@ -503,9 +503,13 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   CHECK_LT(end, layers_.size());
   Dtype loss = 0;
   for (int i = start; i <= end; ++i) {
-    // LOG(ERROR) << "Forwarding " << layer_names_[i];
+    //LOG(ERROR) << "Forwarding " << layer_names_[i];
     layers_[i]->Reshape(bottom_vecs_[i], top_vecs_[i]);
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
+    //if (layer_names_[i]=="loss")
+      //LOG(ERROR) << "Loss multilabel " << layer_loss;
+    //if (layer_names_[i]=="regions_loss")
+      //LOG(ERROR) << "Loss regions_loss " << layer_loss;
     loss += layer_loss;
     if (debug_info_) { ForwardDebugInfo(i); }
   }

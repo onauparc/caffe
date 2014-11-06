@@ -17,6 +17,17 @@ void SigmoidCrossEntropyLossLayer<Dtype>::LayerSetUp(
   sigmoid_top_vec_.clear();
   sigmoid_top_vec_.push_back(sigmoid_output_.get());
   sigmoid_layer_->SetUp(sigmoid_bottom_vec_, sigmoid_top_vec_);
+  if (top.size() >= 1) {
+  // sigmoid cross entropy loss (averaged across batch)
+    top[0]->Reshape(1, 1, 1, 1);
+    LOG(FATAL) << "sig caso 1";
+  }
+  if (top.size() == 2) {
+    // softmax output
+    top[1]->ReshapeLike(*sigmoid_output_.get());
+    top[1]->ShareData(*sigmoid_output_.get());
+    LOG(FATAL) << "sig caso 2";
+  }
 }
 
 template <typename Dtype>

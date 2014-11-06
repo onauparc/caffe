@@ -78,22 +78,27 @@ class SimpleSingleIndexedTextFile
     std::vector<Dtype> data_;
 
  public:
-    explicit SimpleSingleIndexedTextFile(const std::string& file_name) {
+    explicit SimpleSingleIndexedTextFile(const std::string& file_name); /*{
       std::ifstream input(file_name.c_str());
       Dtype tmp;
       while (input >> tmp)
         data_.push_back(tmp);
-    }
+    }*/
 
     virtual index_type read(index_type index,
-          Dtype* out, index_type length) {
+          Dtype* out, index_type length); /*{
       if (index >= data_.size())
         return 0;
 
       if (length > 0)
-        *out = data_[index];
+      {
+        for (int c = 0; c < length; ++c) {
+          *out = data_[index+c];
+          out++;
+        }
+      }
       return 1;
-    }
+    }*/
 };
 }  // namespace caffe
 
