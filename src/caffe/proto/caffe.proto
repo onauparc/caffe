@@ -392,10 +392,10 @@ message ConcatParameter {
 
 // Message that stores parameters used by ConditionalLayer
 message ConditionalParameter {
-  // Concat Layer needs to specify the dimension along the concat will happen,
-  // the other dimensions must be the same for all the bottom blobs
-  // By default it will concatenate blobs along channels dimension
-  optional uint32 concat_dim = 1 [default = 1];
+  // Conditional Layer needs to specify the index which will be compared
+  // with the ArgMax of bottom[0], to allow or deny the forward pass
+  // from bottom[1] to top[1]
+  required uint32 conditional_index = 1;
 }
 
 // Message that stores parameters used by ContrastiveLossLayer
