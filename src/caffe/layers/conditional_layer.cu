@@ -23,6 +23,11 @@ void ConditionalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     caffe_copy(new_tops_num, &indices_to_keep_[0],
           top_data_indices_OR_labels);
   }
+    LOG(ERROR) <<" indices_to_keep_.size(): "<<indices_to_keep_.size();
+  for(int c = 0; c<indices_to_keep_.size(); ++c)
+  {
+	  LOG(ERROR) << c <<") :"<< indices_to_keep_[c];
+  }
   
   size_t size_single_batch = top[1]->count()/top[1]->num();
   size_t size_single_label = bottom[2]->count()/bottom[2]->num();

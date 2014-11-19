@@ -11,6 +11,7 @@ void ConditionalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   conditional_index_ = this->layer_param_.conditional_param().conditional_index();
   output_type_ = this->layer_param_.conditional_param().output_type();
+  first_reshape_ = true;
   CHECK_LE(conditional_index_,bottom[0]->channels()-1 ) <<
     "conditional_index_ should be <= bottom[0]->channels()-1";
   CHECK(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_LABELS || output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_INDICES)
@@ -37,31 +38,51 @@ void ConditionalLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   const Dtype* bottom_data_IF = bottom[0]->cpu_data();
   
   int num_items = bottom[0]->num();
-  int num_channels = bottom[0]->channels();
+  int num_elements = bottom[0]->count()/num_items;
   indices_to_keep_.clear();
+   LOG(ERROR) <<"RESHAPE indices_to_keep_.size(): "<<indices_to_keep_.size();
   //look through the batch to find who passes the conditional check
   for (size_t item_id = 0; item_id < num_items; ++item_id) {
     
-    int index_IF = item_id*num_channels;
+    int index_IF = item_id*num_elements;
     const Dtype* tmp_data_IF = bottom_data_IF + index_IF;
-    int argmax = std::distance(tmp_data_IF,
-        std::max_element(tmp_data_IF, tmp_data_IF + num_channels));
-    
-    if (argmax == conditional_index_)
+    const Dtype max_value = *std::max_element(tmp_data_IF,
+        tmp_data_IF + num_elements);
+    if (*(tmp_data_IF + conditional_index_) == max_value) {
       indices_to_keep_.push_back(item_id);
+    }
 
   }
 
   //Only items that passed conditional check will be forwarded
   int new_tops_num = indices_to_keep_.size();
-  if (new_tops_num == 0)
-    new_tops_num = bottom[1]->num();
+  //if (new_tops_num == 0)
+    //new_tops_num = bottom[1]->num();
+    
+  if( first_reshape_) {
+	new_tops_num = bottom[1]->num();
+	LOG(ERROR) <<"<.----------------------first reshape     21837'984231584";
+	first_reshape_ = false;
+  }
+
+  if(new_tops_num == 0)
+  {
+  if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_INDICES)
+    top[0]->Reshape(new_tops_num, 0, 0, 0);
+  else if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_LABELS)
+    top[0]->Reshape(new_tops_num, 0, 0, 0);
+  top[1]->Reshape(new_tops_num, 0, 0, 0);
+  }
+  else
+  {
+
   
   if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_INDICES)
     top[0]->Reshape(new_tops_num, 1, 1, 1);
   else if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_LABELS)
     top[0]->Reshape(new_tops_num, bottom[2]->channels(), bottom[2]->height(), bottom[2]->width());
   top[1]->Reshape(new_tops_num, bottom[1]->channels(), bottom[1]->height(), bottom[1]->width());
+	}
 
 }
 
@@ -81,6 +102,11 @@ void ConditionalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_INDICES) {
     caffe_copy(new_tops_num, &indices_to_keep_[0],
           top_data_indices_OR_labels);
+  }
+  LOG(ERROR) <<" indices_to_keep_.size(): "<<indices_to_keep_.size();
+  for(int c = 0; c<indices_to_keep_.size(); ++c)
+  {
+	  LOG(ERROR) << c <<") :"<< indices_to_keep_[c];
   }
   
   size_t size_single_batch = top[1]->count()/top[1]->num();

@@ -503,11 +503,26 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   CHECK_LT(end, layers_.size());
   Dtype loss = 0;
   for (int i = start; i <= end; ++i) {
-    // LOG(ERROR) << "Forwarding " << layer_names_[i];
-    layers_[i]->Reshape(bottom_vecs_[i], top_vecs_[i]);
-    Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
-    loss += layer_loss;
-    if (debug_info_) { ForwardDebugInfo(i); }
+     
+     bool continue_forward = true;
+     for(int bv = 0; bv <bottom_vecs_[i].size(); bv++)
+     {
+		 if(bottom_vecs_[i][bv]->num() == 0)
+		 {
+			 if(top_vecs_[i].size() > 0)
+				top_vecs_[i][0]->Reshape(0, top_vecs_[i][0]->channels(), top_vecs_[i][0]->height(), top_vecs_[i][0]->width());
+			 continue_forward = false;
+			 break;
+		 }
+	 }
+    if(continue_forward)
+    {
+		LOG(ERROR) << "Forwarding " << layer_names_[i] << " ID " << i;
+		layers_[i]->Reshape(bottom_vecs_[i], top_vecs_[i]);
+		Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
+		loss += layer_loss;
+		if (debug_info_) { ForwardDebugInfo(i); }
+	}
   }
   return loss;
 }
@@ -569,9 +584,21 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
   CHECK_LT(start, layers_.size());
   for (int i = start; i >= end; --i) {
     if (layer_need_backward_[i]) {
-      layers_[i]->Backward(
-          top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
-      if (debug_info_) { BackwardDebugInfo(i); }
+		
+		bool continue_backward = true;
+		for(int tv = 0; tv <top_vecs_[i].size(); tv++){
+			if(top_vecs_[i][tv]->num() == 0)
+			{
+				continue_backward = false;
+				break;
+			}
+		}
+		if(continue_backward){
+			layers_[i]->Backward(
+			top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
+			if (debug_info_) { BackwardDebugInfo(i); }
+		}
+		
     }
   }
 }

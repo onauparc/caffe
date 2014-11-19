@@ -221,6 +221,7 @@ class ConditionalLayer : public Layer<Dtype> {
 
   int conditional_index_;
   int output_type_;
+  bool first_reshape_;
   vector<Dtype> indices_to_keep_;
 };
 
