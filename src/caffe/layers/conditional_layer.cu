@@ -17,23 +17,23 @@ void ConditionalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data_indices_OR_labels = top[0]->mutable_gpu_data();
   Dtype* top_data = top[1]->mutable_gpu_data();
   
-  int new_tops_num = indices_to_keep_.size();
+  int new_tops_num = indices_to_forward_.size();
   
   if(output_type_ == ConditionalParameter_OUTPUT_TYPE_FILTERED_INDICES) {
-    caffe_copy(new_tops_num, &indices_to_keep_[0],
+    caffe_copy(new_tops_num, &indices_to_forward_[0],
           top_data_indices_OR_labels);
   }
-    LOG(ERROR) <<" indices_to_keep_.size(): "<<indices_to_keep_.size();
-  for(int c = 0; c<indices_to_keep_.size(); ++c)
+    LOG(ERROR) <<" indices_to_forward_.size(): "<<indices_to_forward_.size();
+  for(int c = 0; c<indices_to_forward_.size(); ++c)
   {
-	  LOG(ERROR) << c <<") :"<< indices_to_keep_[c];
+	  LOG(ERROR) << c <<") :"<< indices_to_forward_[c];
   }
   
   size_t size_single_batch = top[1]->count()/top[1]->num();
   size_t size_single_label = bottom[2]->count()/bottom[2]->num();
   for (size_t n = 0; n<new_tops_num; n++)
   {
-    int offset = indices_to_keep_[n];    
+    int offset = indices_to_forward_[n];    
     int data_offset_top = size_single_batch*n;
     int data_offset_bottom = size_single_batch*offset;
 
@@ -60,7 +60,7 @@ void ConditionalLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     std::vector<double> zeros (size_single_batch,0.0);
     for (size_t n = 0; n<bottom[1]->num(); n++)
     {
-      int offset = indices_to_keep_[n];
+      int offset = indices_to_forward_[n];
       int data_offset_bottom = size_single_batch*n;
       if(n != offset) { //this data was not been forwarded
         caffe_copy(size_single_batch,(Dtype*)&zeros[0], bottom[1]->mutable_gpu_diff() + data_offset_bottom);
