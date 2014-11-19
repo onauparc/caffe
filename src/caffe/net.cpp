@@ -511,13 +511,14 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
 		 {
 			 if(top_vecs_[i].size() > 0)
 				top_vecs_[i][0]->Reshape(0, top_vecs_[i][0]->channels(), top_vecs_[i][0]->height(), top_vecs_[i][0]->width());
+				LOG(ERROR) << "Forwarding INTERROTTA" << i;
 			 continue_forward = false;
 			 break;
 		 }
 	 }
     if(continue_forward)
     {
-		LOG(ERROR) << "Forwarding " << layer_names_[i] << " ID " << i;
+		//LOG(ERROR) << "Forwarding " << layer_names_[i] << " ID " << i;
 		layers_[i]->Reshape(bottom_vecs_[i], top_vecs_[i]);
 		Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
 		loss += layer_loss;
@@ -589,6 +590,7 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
 		for(int tv = 0; tv <top_vecs_[i].size(); tv++){
 			if(top_vecs_[i][tv]->num() == 0)
 			{
+				LOG(ERROR) << "Backward INTERROTTA" << i;
 				continue_backward = false;
 				break;
 			}
